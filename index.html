@@ -17,9 +17,28 @@
             background-color: #2c2541;
             height: 100vh;
             height: 100dvh;
+            /* [중요] 모바일에서 길게 눌러서 저장하는 메뉴 차단 */
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
-        /* 1. 종이 질감 효과 제거됨 (texture-overlay 삭제) */
+        /* [중요] 이미지 저장 방지용 강력한 스타일 */
+        img {
+            /* 1. 드래그해서 저장하기 방지 */
+            -webkit-user-drag: none;
+            -khtml-user-drag: none;
+            -moz-user-drag: none;
+            -o-user-drag: none;
+            user-drag: none;
+            
+            /* 2. 이미지가 클릭 이벤트를 받지 않도록 하여 우클릭/롱탭 메뉴 원천 차단 */
+            /* (게임의 드래그 동작은 부모 div가 처리하므로 플레이에는 지장 없음) */
+            pointer-events: none; 
+            
+            /* 3. 선택 방지 */
+            user-select: none;
+        }
 
         /* --- 배경 (Scene) --- */
         .scene-bg {
@@ -36,7 +55,7 @@
             inset: 0;
             z-index: 100;
             pointer-events: none;
-            background-image: url('Untitled-1.png'); 
+            background-image: url('game/Untitled-1.png'); 
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -55,7 +74,7 @@
             filter: blur(1px);
         }
 
-        /* 2. 트리 밑을 일자로 변경 (평평한 땅) */
+        /* 트리 밑을 일자로 변경 (평평한 땅) */
         .hill {
             position: absolute;
             bottom: 0;
@@ -63,7 +82,6 @@
             width: 100%;
             height: 20%;
             background: #e8eaed;
-            /* border-radius 제거하여 평평하게 */
             box-shadow: inset 0 10px 20px #94a3b8;
         }
         .hill-back {
@@ -73,7 +91,6 @@
             width: 100%;
             height: 20%;
             background: #cbd5e1;
-            /* 약간의 경사만 주거나 평평하게 */
             transform: skewY(-2deg);
             transform-origin: bottom right;
             z-index: -1;
@@ -90,19 +107,18 @@
             pointer-events: none;
             z-index: 10;
             text-shadow: 0 0 5px white;
-            will-change: transform; /* 성능 최적화 */
+            will-change: transform;
         }
         @keyframes fall {
             to { transform: translateY(110vh) rotate(360deg); }
         }
 
-        /* 4. 트리 컨테이너 크기 조정 (저장 전/후 차이 줄이기) */
+        /* 트리 컨테이너 크기 조정 */
         .tree-container {
             position: relative;
             width: 80vw; 
             max-width: 450px; 
             height: auto;
-            /* UI 패널(35vh)을 고려하여 높이 제한 */
             max-height: 55vh; 
             aspect-ratio: 340/480;
             filter: drop-shadow(0 10px 10px rgba(0,0,0,0.3));
@@ -217,12 +233,12 @@
         /* 미리보기 모드용 스타일 */
         .preview-mode #top-toolbar, 
         .preview-mode #ui-panel {
-            transform: translateY(150%); /* 아래로 숨김 */
+            transform: translateY(150%);
             opacity: 0;
             pointer-events: none;
         }
         .preview-mode #top-toolbar {
-            transform: translateY(-150%); /* 위로 숨김 */
+            transform: translateY(-150%);
         }
         
         /* 미리보기 컨트롤 */
@@ -312,8 +328,8 @@
                       fill="#86efac" filter="url(#displacementFilter)" />
             </svg>
 
-            <!-- 사용자 커스텀 트리 이미지 (기본값 tree.png) -->
-            <img id="custom-tree-img" src="tree.png" class="absolute inset-0 w-full h-full object-contain pointer-events-none" alt="Custom Tree" onerror="this.style.display='none'; document.getElementById('default-tree-svg').classList.remove('hidden');">
+            <!-- 사용자 커스텀 트리 이미지 -->
+            <img id="custom-tree-img" src="game/tree.png" class="absolute inset-0 w-full h-full object-contain pointer-events-none" alt="Custom Tree" onerror="this.style.display='none'; document.getElementById('default-tree-svg').classList.remove('hidden');" draggable="false">
             
             <!-- 장식 레이어 -->
             <div id="ornaments-layer" class="absolute inset-0 w-full h-full z-30"></div>
@@ -364,6 +380,11 @@
     </aside>
 
     <script>
+        // [중요] 우클릭 차단 (PC 및 모바일 롱탭 일부 방어)
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+
         // 안전 영역 패딩
         const safeAreaStyle = document.createElement('style');
         safeAreaStyle.innerHTML = `
@@ -380,9 +401,10 @@
             { id: 'sock', type: 'ornament', html: '<svg viewBox="0 0 24 24"><path d="M8 2h8v6h-8z" fill="#fca5a5"/><path d="M8 8h8v7a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4v-7z" fill="#ef4444" stroke="#b91c1c" stroke-width="1.5"/><path d="M4 14a2 2 0 0 0 2 2h2" fill="none" stroke="#fff" stroke-width="2"/></svg>', size: 55 },
             { id: 'gift', type: 'gift', html: '<svg viewBox="0 0 24 24"><rect x="4" y="9" width="16" height="13" rx="2" fill="#86efac" stroke="#22c55e" stroke-width="1.5"/><rect x="10" y="9" width="4" height="13" fill="#ef4444"/><rect x="2" y="6" width="20" height="4" rx="1" fill="#ef4444"/><path d="M12 6L8 2M12 6L16 2" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/></svg>', size: 60 },
             { id: 'cookie', type: 'ornament', html: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#d4a373" stroke="#9c6644" stroke-width="1.5"/><circle cx="9" cy="10" r="1.5" fill="#5c4033"/><circle cx="15" cy="10" r="1.5" fill="#5c4033"/><circle cx="12" cy="15" r="1.5" fill="#5c4033"/></svg>', size: 50 },
-            { id: 'light', type: 'light', html: '<svg viewBox="0 0 24 24"><path d="M12 2v4" stroke="#64748b" stroke-width="2"/><path d="M12 6c0 0-5 2-5 8s3 8 5 8 5-2 5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8z" fill="#fdf4ff" stroke="#e879f9" stroke-width="1.5"/><circle cx="12" cy="14" r="3" fill="#fae8ff" opacity="0.6"/></svg>', size: 40 },
+            { id: 'light', type: 'light', html: '<svg viewBox="0 0 24 24"><path d="M12 2v4" stroke="#64748b" stroke-width="2"/><path d="M12 6c0 0-5 2-5 8s3 8 5 8 5-2 5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8z" fill="#fdf4ff" stroke="#e879f9" stroke-width="1.5"/><circle cx="12" cy="14" r="3" fill="#fae8ff" opacity="0.6"/></svg>', size: 40 },
             { id: 'snowball', type: 'ornament', html: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="white" stroke="#bae6fd" stroke-width="1.5"/><path d="M12 4v16M4 12h16" stroke="#bae6fd" stroke-width="1" stroke-linecap="round"/></svg>', size: 45 },
-            { id: 'pig', type: 'ornament', html: '<img src="pig.png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="pig">', size: 60 },
+            // 이미지에도 pointer-events-none 및 draggable=false 적용 (CSS로도 커버되지만 이중 안전장치)
+            { id: 'pig', type: 'ornament', html: '<img src="game/pig.png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="pig" draggable="false">', size: 60 },
         ];
         
         // 아이템 복제 (모바일 레이아웃 채우기용)

@@ -55,7 +55,8 @@
             inset: 0;
             z-index: 100;
             pointer-events: none;
-            background-image: url('game/Untitled-1.png'); 
+            /* 경로 수정: game/ 제거 */
+            background-image: url('Untitled-1.png'); 
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -328,8 +329,8 @@
                       fill="#86efac" filter="url(#displacementFilter)" />
             </svg>
 
-            <!-- 사용자 커스텀 트리 이미지 -->
-            <img id="custom-tree-img" src="game/tree.png" class="absolute inset-0 w-full h-full object-contain pointer-events-none" alt="Custom Tree" onerror="this.style.display='none'; document.getElementById('default-tree-svg').classList.remove('hidden');" draggable="false">
+            <!-- 사용자 커스텀 트리 이미지 (경로 수정: game/ 제거) -->
+            <img id="custom-tree-img" src="tree.png" class="absolute inset-0 w-full h-full object-contain pointer-events-none" alt="Custom Tree" onerror="this.style.display='none'; document.getElementById('default-tree-svg').classList.remove('hidden');" draggable="false">
             
             <!-- 장식 레이어 -->
             <div id="ornaments-layer" class="absolute inset-0 w-full h-full z-30"></div>
@@ -401,11 +402,12 @@
             { id: 'sock', type: 'ornament', html: '<svg viewBox="0 0 24 24"><path d="M8 2h8v6h-8z" fill="#fca5a5"/><path d="M8 8h8v7a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4v-7z" fill="#ef4444" stroke="#b91c1c" stroke-width="1.5"/><path d="M4 14a2 2 0 0 0 2 2h2" fill="none" stroke="#fff" stroke-width="2"/></svg>', size: 55 },
             { id: 'gift', type: 'gift', html: '<svg viewBox="0 0 24 24"><rect x="4" y="9" width="16" height="13" rx="2" fill="#86efac" stroke="#22c55e" stroke-width="1.5"/><rect x="10" y="9" width="4" height="13" fill="#ef4444"/><rect x="2" y="6" width="20" height="4" rx="1" fill="#ef4444"/><path d="M12 6L8 2M12 6L16 2" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/></svg>', size: 60 },
             { id: 'cookie', type: 'ornament', html: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#d4a373" stroke="#9c6644" stroke-width="1.5"/><circle cx="9" cy="10" r="1.5" fill="#5c4033"/><circle cx="15" cy="10" r="1.5" fill="#5c4033"/><circle cx="12" cy="15" r="1.5" fill="#5c4033"/></svg>', size: 50 },
-            { id: 'light', type: 'light', html: '<svg viewBox="0 0 24 24"><path d="M12 2v4" stroke="#64748b" stroke-width="2"/><path d="M12 6c0 0-5 2-5 8s3 8 5 8 5-2 5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8z" fill="#fdf4ff" stroke="#e879f9" stroke-width="1.5"/><circle cx="12" cy="14" r="3" fill="#fae8ff" opacity="0.6"/></svg>', size: 40 },
+            { id: 'light', type: 'light', html: '<svg viewBox="0 0 24 24"><path d="M12 2v4" stroke="#64748b" stroke-width="2"/><path d="M12 6c0 0-5 2-5 8s3 8 5 8 5-2 5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8z" fill="#fdf4ff" stroke="#e879f9" stroke-width="1.5"/><circle cx="12" cy="14" r="3" fill="#fae8ff" opacity="0.6"/></svg>', size: 40 },
             { id: 'snowball', type: 'ornament', html: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="white" stroke="#bae6fd" stroke-width="1.5"/><path d="M12 4v16M4 12h16" stroke="#bae6fd" stroke-width="1" stroke-linecap="round"/></svg>', size: 45 },
-            // 이미지에도 pointer-events-none 및 draggable=false 적용 (CSS로도 커버되지만 이중 안전장치)
-            { id: 'pig', type: 'ornament', html: '<img src="game/pig.png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="pig" draggable="false">', size: 60 },
-            { id: 'pig1', type: 'ornament', html: '<img src="game/pig1.png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="pig1" draggable="false">', size: 60 },
+            // 이미지 경로 수정: game/ 제거 (Canvas 미리보기용)
+            { id: 'pig', type: 'ornament', html: '<img src="pig.png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="pig" draggable="false">', size: 60 },
+            // pig1의 크기를 가로 70, 세로 140으로 설정 (1:2 비율 반영하여 큼직하게)
+            { id: 'pig1', type: 'ornament', html: '<img src="pig1.png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="pig1" draggable="false">', width: 70, height: 140 },
         ];
         
         // 아이템 복제 (모바일 레이아웃 채우기용)
@@ -588,8 +590,13 @@
             activeClone = document.createElement('div');
             activeClone.className = 'drag-clone';
             activeClone.innerHTML = itemData.html;
-            activeClone.style.width = `${itemData.size}px`;
-            activeClone.style.height = `${itemData.size}px`;
+            
+            // 너비와 높이를 개별적으로 설정 (없으면 size 사용)
+            const w = itemData.width || itemData.size;
+            const h = itemData.height || itemData.size;
+            
+            activeClone.style.width = `${w}px`;
+            activeClone.style.height = `${h}px`;
             activeClone.style.left = `${clientX}px`;
             activeClone.style.top = `${clientY}px`;
             
@@ -657,10 +664,15 @@
             const el = document.createElement('div');
             el.className = 'placed-item';
             el.innerHTML = draggedItem.html;
-            el.style.width = `${draggedItem.size}px`;
-            el.style.height = `${draggedItem.size}px`;
-            el.style.left = `${relativeX - (draggedItem.size / 2)}px`;
-            el.style.top = `${relativeY - (draggedItem.size / 2)}px`;
+            
+            // 배치할 때도 너비/높이 개별 적용
+            const w = draggedItem.width || draggedItem.size;
+            const h = draggedItem.height || draggedItem.size;
+            
+            el.style.width = `${w}px`;
+            el.style.height = `${h}px`;
+            el.style.left = `${relativeX - (w / 2)}px`;
+            el.style.top = `${relativeY - (h / 2)}px`;
             
             const rotation = Math.random() * 20 - 10;
             el.style.transform = `rotate(${rotation}deg)`;

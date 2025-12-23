@@ -56,7 +56,7 @@
             z-index: 100;
             pointer-events: none;
             /* 경로 수정: game/ 제거 */
-            background-image: url('Untitled-1.png'); 
+            background-image: url('game/Untitled-1.png'); 
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -330,7 +330,7 @@
             </svg>
 
             <!-- 사용자 커스텀 트리 이미지 (경로 수정: game/ 제거) -->
-            <img id="custom-tree-img" src="tree.png" class="absolute inset-0 w-full h-full object-contain pointer-events-none" alt="Custom Tree" onerror="this.style.display='none'; document.getElementById('default-tree-svg').classList.remove('hidden');" draggable="false">
+            <img id="custom-tree-img" src="game/tree.png" class="absolute inset-0 w-full h-full object-contain pointer-events-none" alt="Custom Tree" onerror="this.style.display='none'; document.getElementById('default-tree-svg').classList.remove('hidden');" draggable="false">
             
             <!-- 장식 레이어 -->
             <div id="ornaments-layer" class="absolute inset-0 w-full h-full z-30"></div>
@@ -405,9 +405,9 @@
             { id: 'light', type: 'light', html: '<svg viewBox="0 0 24 24"><path d="M12 2v4" stroke="#64748b" stroke-width="2"/><path d="M12 6c0 0-5 2-5 8s3 8 5 8 5-2 5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8z" fill="#fdf4ff" stroke="#e879f9" stroke-width="1.5"/><circle cx="12" cy="14" r="3" fill="#fae8ff" opacity="0.6"/></svg>', size: 40 },
             { id: 'snowball', type: 'ornament', html: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="white" stroke="#bae6fd" stroke-width="1.5"/><path d="M12 4v16M4 12h16" stroke="#bae6fd" stroke-width="1" stroke-linecap="round"/></svg>', size: 45 },
             // 이미지 경로 수정: game/ 제거 (Canvas 미리보기용)
-            { id: 'pig', type: 'ornament', html: '<img src="pig.png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="pig" draggable="false">', size: 60 },
+            { id: 'pig', type: 'ornament', html: '<img src="game/pig.png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="pig" draggable="false">', size: 60 },
             // pig1의 크기를 가로 70, 세로 140으로 설정 (1:2 비율 반영하여 큼직하게)
-            { id: 'pig1', type: 'ornament', html: '<img src="pig1.png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="pig1" draggable="false">', width: 70, height: 140 },
+            { id: 'pig1', type: 'ornament', html: '<img src="game/pig1.png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="pig1" draggable="false">', width: 70, height: 140 },
         ];
         
         // 아이템 복제 (모바일 레이아웃 채우기용)

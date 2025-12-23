@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>나만의 크리스마스 트리 꾸미기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- html2canvas 라이브러리 추가 (고화질 저장용) -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Gaegu&family=Jua&display=swap');
+
+        body {
+            font-family: 'Jua', sans-serif;
+            overflow: hidden;
+            touch-action: none;
+            background-color: #2c2541;
+            height: 100vh;
+            height: 100dvh;
+        }
+
+        /* 1. 종이 질감 효과 제거됨 (texture-overlay 삭제) */
+
+        /* --- 배경 (Scene) --- */
+        .scene-bg {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 30%, #4c4668 0%, #2d2644 60%, #1a1626 100%);
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        /* --- 전경 (프레임) --- */
+        #foreground-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 100;
+            pointer-events: none;
+            background-image: url('Untitled-1.png'); 
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* 배경 장식들 */
+        .moon {
+            position: absolute;
+            top: 5%;
+            right: 10%;
+            width: 80px;
+            height: 80px;
+            background: #fdf6e3;
+            border-radius: 50%;
+            box-shadow: 0 0 50px rgba(253, 246, 227, 0.4);
+            filter: blur(1px);
+        }
+
+        /* 2. 트리 밑을 일자로 변경 (평평한 땅) */
+        .hill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 20%;
+            background: #e8eaed;
+            /* border-radius 제거하여 평평하게 */
+            box-shadow: inset 0 10px 20px #94a3b8;
+        }
+        .hill-back {
+            position: absolute;
+            bottom: 10%;
+            right: 0;
+            width: 100%;
+            height: 20%;
+            background: #cbd5e1;
+            /* 약간의 경사만 주거나 평평하게 */
+            transform: skewY(-2deg);
+            transform-origin: bottom right;
+            z-index: -1;
+            opacity: 0.7;
+        }
+
+        /* 눈 내리는 애니메이션 */
+        .snowflake {
+            position: absolute;
+            top: -20px;
+            color: white;
+            opacity: 0.9;
+            animation: fall linear forwards;
+            pointer-events: none;
+            z-index: 10;
+            text-shadow: 0 0 5px white;
+            will-change: transform; /* 성능 최적화 */
+        }
+        @keyframes fall {
+            to { transform: translateY(110vh) rotate(360deg); }
+        }
+
+        /* 4. 트리 컨테이너 크기 조정 (저장 전/후 차이 줄이기) */
+        .tree-container {
+            position: relative;
+            width: 80vw; 
+            max-width: 450px; 
+            height: auto;
+            /* UI 패널(35vh)을 고려하여 높이 제한 */
+            max-height: 55vh; 
+            aspect-ratio: 340/480;
+            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.3));
+            z-index: 20;
+            transition: transform 0.3s;
+        }
+
+        /* 아이템 스타일 */
+        .placed-item {
+            position: absolute;
+            cursor: grab; 
+            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            filter: drop-shadow(2px 3px 0px rgba(0,0,0,0.2));
+            touch-action: none;
+            z-index: 50;
+        }
+        .placed-item.is-dragging {
+            cursor: grabbing;
+            filter: drop-shadow(0 15px 15px rgba(0,0,0,0.4));
+            z-index: 100; 
+            transform: scale(1.2);
+        }
+        
+        /* UI 패널 */
+        .sketch-panel {
+            background: #fdfbf7;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.15);
+            font-family: 'Gaegu', cursive;
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+        }
+        
+        .shelf-slot {
+            background: #fff;
+            border-radius: 16px;
+            border: 2px dashed #cbd5e1;
+            transition: all 0.1s;
+        }
+        .shelf-slot:active {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+            transform: scale(0.95);
+        }
+
+        .tool-btn {
+            background: #fff;
+            border: 2px solid #94a3b8;
+            color: #475569;
+            border-radius: 12px;
+            padding: 8px;
+            transition: all 0.1s;
+            box-shadow: 0 2px 0 #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .tool-btn:active {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+
+        .page-btn {
+            background: #fff;
+            color: #475569;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: 2px solid #cbd5e1;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        .page-btn:disabled {
+            opacity: 0.3;
+            border-color: #e2e8f0;
+        }
+        .page-btn:active:not(:disabled) {
+            background: #f1f5f9;
+            transform: scale(0.95);
+        }
+
+        .hidden-input { display: none; }
+        #custom-tree-img, #custom-bg-layer { pointer-events: none; }
+        #custom-bg-layer { position: absolute; inset: 0; background-size: cover; background-position: center; z-index: 1; opacity: 1; }
+        
+        /* 드래그 중인 클론 아이템 */
+        .drag-clone {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%) scale(1.2) rotate(-5deg);
+            filter: drop-shadow(0 15px 15px rgba(0,0,0,0.2));
+        }
+
+        /* 로딩 인디케이터 */
+        #loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 9999;
+            font-size: 1.5rem;
+            flex-direction: column;
+        }
+        .hidden { display: none !important; }
+
+        /* 미리보기 모드용 스타일 */
+        .preview-mode #top-toolbar, 
+        .preview-mode #ui-panel {
+            transform: translateY(150%); /* 아래로 숨김 */
+            opacity: 0;
+            pointer-events: none;
+        }
+        .preview-mode #top-toolbar {
+            transform: translateY(-150%); /* 위로 숨김 */
+        }
+        
+        /* 미리보기 컨트롤 */
+        #preview-controls {
+            transform: translateY(150%);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .preview-mode #preview-controls {
+            transform: translateY(0);
+        }
+
+        /* 애니메이션 트랜지션 */
+        #top-toolbar, #ui-panel {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+    </style>
+</head>
+<body class="flex flex-col text-slate-800 select-none">
+
+    <!-- 로딩 오버레이 -->
+    <div id="loading-overlay" class="hidden">
+        <svg class="animate-spin h-10 w-10 text-white mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>저장 중...</span>
+    </div>
+
+    <!-- 전경 (프레임) -->
+    <div id="foreground-layer"></div>
+
+    <!-- 배경 (Scene) -->
+    <div class="scene-bg">
+        <div class="moon"></div>
+        <div class="hill-back"></div>
+        <div class="hill"></div>
+        <div id="custom-bg-layer" class="hidden"></div>
+    </div>
+
+    <!-- 눈 효과 -->
+    <div id="snow-container" class="absolute inset-0 pointer-events-none z-10"></div>
+
+    <!-- 파일 입력 -->
+    <input type="file" id="tree-upload" class="hidden-input" accept="image/*">
+    <input type="file" id="bg-upload" class="hidden-input" accept="image/*">
+
+    <!-- 메인 게임 영역 -->
+    <main class="relative flex-1 flex flex-col items-center justify-center w-full overflow-hidden z-20" id="capture-area">
+        
+        <!-- 상단 툴바 -->
+        <div id="top-toolbar" class="absolute top-4 left-0 w-full px-5 flex justify-between items-start z-50 pointer-events-auto" data-html2canvas-ignore>
+            <h1 class="text-xl text-white drop-shadow-md font-bold" style="font-family: 'Gaegu', cursive;">
+                🎄 나의 트리
+            </h1>
+            <div class="flex gap-2">
+                <button onclick="resetTree()" class="tool-btn bg-white/90" title="초기화">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 12"/><path d="M3 3v9h9"/></svg>
+                </button>
+                <button onclick="togglePreviewMode(true)" class="tool-btn bg-white/90 px-3 font-bold text-sm" title="미리보기">
+                    <span class="mr-1">👁️</span> 미리보기
+                </button>
+            </div>
+        </div>
+
+        <!-- 트리 영역 -->
+        <div class="tree-container flex items-center justify-center" id="drop-zone">
+            
+            <!-- 기본 트리 SVG -->
+            <svg id="default-tree-svg" viewBox="0 0 400 550" class="w-full h-full pointer-events-none hidden">
+                <defs>
+                    <filter id="displacementFilter">
+                        <feTurbulence type="turbulence" baseFrequency="0.01" numOctaves="3" result="turbulence" />
+                        <feDisplacementMap in2="turbulence" in="SourceGraphic" scale="5" xChannelSelector="R" yChannelSelector="G" />
+                    </filter>
+                    <linearGradient id="softGreen" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#86efac" />
+                        <stop offset="100%" stop-color="#16a34a" />
+                    </linearGradient>
+                </defs>
+                <ellipse cx="200" cy="520" rx="110" ry="15" fill="rgba(0,0,0,0.2)" filter="url(#displacementFilter)" />
+                <path d="M180,480 L185,520 L215,520 L220,480 Z" fill="#78350f" filter="url(#displacementFilter)" />
+                <path d="M60,450 C40,450 40,380 90,360 C80,340 120,320 150,330 C160,300 240,300 250,330 C280,320 320,340 310,360 C360,380 360,450 340,450 C340,480 60,480 60,450 Z" 
+                      fill="#22c55e" filter="url(#displacementFilter)" />
+                <path d="M90,340 C70,340 70,280 110,260 C100,240 140,220 160,230 C180,210 220,210 240,230 C260,220 300,240 290,260 C330,280 330,340 310,340 C310,360 90,360 90,340 Z" 
+                      fill="#4ade80" filter="url(#displacementFilter)" />
+                <path d="M120,230 C100,230 100,180 130,170 C120,150 150,130 170,140 C180,110 220,110 230,140 C250,130 280,150 270,170 C300,180 300,230 280,230 C280,250 120,250 120,230 Z" 
+                      fill="#86efac" filter="url(#displacementFilter)" />
+            </svg>
+
+            <!-- 사용자 커스텀 트리 이미지 (기본값 tree.png) -->
+            <img id="custom-tree-img" src="tree.png" class="absolute inset-0 w-full h-full object-contain pointer-events-none" alt="Custom Tree" onerror="this.style.display='none'; document.getElementById('default-tree-svg').classList.remove('hidden');">
+            
+            <!-- 장식 레이어 -->
+            <div id="ornaments-layer" class="absolute inset-0 w-full h-full z-30"></div>
+        </div>
+
+        <div id="toast" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/90 backdrop-blur text-slate-700 font-bold px-8 py-4 rounded-2xl shadow-2xl opacity-0 transition-opacity pointer-events-none z-50 border-2 border-slate-200 text-center">
+            완료!
+        </div>
+
+        <!-- 미리보기 모드 컨트롤 (하단) -->
+        <div id="preview-controls" class="absolute bottom-8 left-0 w-full px-6 flex justify-center gap-4 z-50 pointer-events-auto" data-html2canvas-ignore>
+            <button onclick="togglePreviewMode(false)" class="bg-white/90 backdrop-blur text-slate-700 px-6 py-3 rounded-full font-bold shadow-lg border border-slate-200 hover:bg-slate-50 transition-transform active:scale-95">
+                ✏️ 편집하기
+            </button>
+            <button onclick="saveHighQualityImage()" class="bg-slate-800 text-white px-8 py-3 rounded-full font-bold shadow-lg border border-slate-600 hover:bg-slate-900 transition-transform active:scale-95 flex items-center gap-2">
+                📸 저장하기
+            </button>
+        </div>
+
+    </main>
+
+    <!-- UI 패널 (하단 고정) -->
+    <aside class="z-40 w-full h-[35vh] min-h-[220px] sketch-panel flex flex-col transition-transform duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.2)]" id="ui-panel">
+        
+        <!-- 커스텀 버튼들 -->
+        <div class="px-5 pt-4 pb-2 shrink-0">
+            <div class="flex gap-2 text-xs">
+                <button onclick="document.getElementById('tree-upload').click()" class="flex-1 bg-white hover:bg-slate-50 py-3 rounded-xl text-slate-600 border-2 border-slate-200 transition-colors font-bold shadow-sm">
+                    + 트리 바꾸기
+                </button>
+                <button onclick="document.getElementById('bg-upload').click()" class="flex-1 bg-white hover:bg-slate-50 py-3 rounded-xl text-slate-600 border-2 border-slate-200 transition-colors font-bold shadow-sm">
+                    + 배경 바꾸기
+                </button>
+            </div>
+        </div>
+
+        <!-- 아이템 팔레트 -->
+        <div class="flex-1 overflow-hidden relative flex flex-col bg-slate-50/50 border-t border-slate-200">
+            <div id="palette" class="flex-1 p-4 grid grid-cols-5 gap-3 content-center justify-items-center"></div>
+        </div>
+
+        <!-- 페이지네이션 -->
+        <div class="p-3 border-t border-slate-200 flex justify-between items-center bg-white shrink-0 pb-safe">
+            <button onclick="changePage(-1)" id="btn-prev" class="page-btn">◀</button>
+            <span id="page-indicator" class="font-bold text-slate-500 text-lg font-mono tracking-widest bg-slate-100 px-4 py-1 rounded-lg">1 / 1</span>
+            <button onclick="changePage(1)" id="btn-next" class="page-btn">▶</button>
+        </div>
+    </aside>
+
+    <script>
+        // 안전 영역 패딩
+        const safeAreaStyle = document.createElement('style');
+        safeAreaStyle.innerHTML = `
+            .pb-safe { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+        `;
+        document.head.appendChild(safeAreaStyle);
+
+        const decorations = [
+            { id: 'star', type: 'topper', html: '<svg viewBox="0 0 24 24"><path fill="#fcd34d" stroke="#fbbf24" stroke-width="1.5" stroke-linejoin="round" d="M12 2l2.5 7h7.5l-6 4.5 2.5 7-6.5-4.5-6.5 4.5 2.5-7-6-4.5h7.5z"/></svg>', size: 70 },
+            { id: 'ball-red', type: 'ornament', html: '<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="9" fill="#f87171" stroke="#ef4444" stroke-width="1.5"/><rect x="10" y="2" width="4" height="4" fill="#b91c1c" rx="1"/><path d="M15 10q2 2 0 4" stroke="white" stroke-width="2" fill="none" opacity="0.5"/></svg>', size: 50 },
+            { id: 'ball-yellow', type: 'ornament', html: '<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="9" fill="#fde047" stroke="#eab308" stroke-width="1.5"/><rect x="10" y="2" width="4" height="4" fill="#854d0e" rx="1"/><path d="M15 10q2 2 0 4" stroke="white" stroke-width="2" fill="none" opacity="0.5"/></svg>', size: 50 },
+            { id: 'ball-teal', type: 'ornament', html: '<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="9" fill="#5eead4" stroke="#14b8a6" stroke-width="1.5"/><rect x="10" y="2" width="4" height="4" fill="#0f766e" rx="1"/><path d="M15 10q2 2 0 4" stroke="white" stroke-width="2" fill="none" opacity="0.5"/></svg>', size: 50 },
+            { id: 'candy', type: 'ornament', html: '<svg viewBox="0 0 24 24"><path d="M7 19v-6a5 5 0 0 1 10 0" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/><path d="M7 19v-6a5 5 0 0 1 10 0" fill="none" stroke="#f43f5e" stroke-width="6" stroke-linecap="round" stroke-dasharray="3 4"/></svg>', size: 55 },
+            { id: 'sock', type: 'ornament', html: '<svg viewBox="0 0 24 24"><path d="M8 2h8v6h-8z" fill="#fca5a5"/><path d="M8 8h8v7a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4v-7z" fill="#ef4444" stroke="#b91c1c" stroke-width="1.5"/><path d="M4 14a2 2 0 0 0 2 2h2" fill="none" stroke="#fff" stroke-width="2"/></svg>', size: 55 },
+            { id: 'gift', type: 'gift', html: '<svg viewBox="0 0 24 24"><rect x="4" y="9" width="16" height="13" rx="2" fill="#86efac" stroke="#22c55e" stroke-width="1.5"/><rect x="10" y="9" width="4" height="13" fill="#ef4444"/><rect x="2" y="6" width="20" height="4" rx="1" fill="#ef4444"/><path d="M12 6L8 2M12 6L16 2" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/></svg>', size: 60 },
+            { id: 'cookie', type: 'ornament', html: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#d4a373" stroke="#9c6644" stroke-width="1.5"/><circle cx="9" cy="10" r="1.5" fill="#5c4033"/><circle cx="15" cy="10" r="1.5" fill="#5c4033"/><circle cx="12" cy="15" r="1.5" fill="#5c4033"/></svg>', size: 50 },
+            { id: 'light', type: 'light', html: '<svg viewBox="0 0 24 24"><path d="M12 2v4" stroke="#64748b" stroke-width="2"/><path d="M12 6c0 0-5 2-5 8s3 8 5 8 5-2 5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8z" fill="#fdf4ff" stroke="#e879f9" stroke-width="1.5"/><circle cx="12" cy="14" r="3" fill="#fae8ff" opacity="0.6"/></svg>', size: 40 },
+            { id: 'snowball', type: 'ornament', html: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="white" stroke="#bae6fd" stroke-width="1.5"/><path d="M12 4v16M4 12h16" stroke="#bae6fd" stroke-width="1" stroke-linecap="round"/></svg>', size: 45 },
+            { id: 'pig', type: 'ornament', html: '<img src="pig.png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="pig">', size: 60 },
+        ];
+        
+        // 아이템 복제 (모바일 레이아웃 채우기용)
+        const extras = decorations.map((d, i) => ({...d, id: d.id + '_copy' + i})).slice(0, 20);
+        decorations.push(...extras);
+
+        const paletteEl = document.getElementById('palette');
+        const ornamentLayer = document.getElementById('ornaments-layer');
+        const dropZone = document.getElementById('drop-zone');
+        
+        let currentPage = 1;
+        const itemsPerPage = 10; 
+        
+        let draggedItem = null;
+        let activeClone = null;
+
+        document.getElementById('tree-upload').addEventListener('change', function(e) { handleImageUpload(e.target.files[0], 'tree'); });
+        document.getElementById('bg-upload').addEventListener('change', function(e) { handleImageUpload(e.target.files[0], 'bg'); });
+
+        function handleImageUpload(file, type) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (type === 'tree') {
+                    const img = document.getElementById('custom-tree-img');
+                    const svg = document.getElementById('default-tree-svg');
+                    img.src = e.target.result;
+                    img.classList.remove('hidden');
+                    svg.classList.add('hidden');
+                    showToast('트리가 변경되었습니다!');
+                } else if (type === 'bg') {
+                    const bgLayer = document.getElementById('custom-bg-layer');
+                    bgLayer.style.backgroundImage = `url(${e.target.result})`;
+                    bgLayer.classList.remove('hidden');
+                    showToast('배경이 변경되었습니다!');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.classList.remove('opacity-0');
+            setTimeout(() => toast.classList.add('opacity-0'), 2000);
+        }
+
+        function togglePreviewMode(showPreview) {
+            const body = document.body;
+            if (showPreview) {
+                body.classList.add('preview-mode');
+            } else {
+                body.classList.remove('preview-mode');
+            }
+        }
+
+        async function saveHighQualityImage() {
+            const loading = document.getElementById('loading-overlay');
+            loading.classList.remove('hidden');
+            
+            // 3. 눈송이 위치 고정 로직 (캡처 전 Freeze)
+            const snowflakes = document.querySelectorAll('.snowflake');
+            const frozenStates = [];
+            
+            snowflakes.forEach(flake => {
+                // 현재 계산된 스타일(위치) 가져오기
+                const computed = window.getComputedStyle(flake);
+                const transform = computed.transform;
+                const top = computed.top;
+                
+                // 현재 상태 저장
+                frozenStates.push({
+                    element: flake,
+                    animation: flake.style.animation,
+                    transform: flake.style.transform
+                });
+
+                // 애니메이션 멈추고 현재 위치로 고정
+                flake.style.animation = 'none';
+                flake.style.transform = transform; 
+            });
+
+            // 캡처 전 아주 잠깐 대기 (UI 트랜지션 완료 보장)
+            await new Promise(resolve => setTimeout(resolve, 350));
+
+            try {
+                // 미리보기 모드가 아니었다면 잠시 UI 숨김 처리 후 캡처
+                const body = document.body;
+                const wasInPreview = body.classList.contains('preview-mode');
+                if (!wasInPreview) body.classList.add('preview-mode');
+
+                await new Promise(resolve => setTimeout(resolve, 100)); // DOM 업데이트 대기
+
+                const captureElement = document.body; 
+
+                const canvas = await html2canvas(captureElement, {
+                    scale: 3, 
+                    backgroundColor: null,
+                    useCORS: true,
+                    ignoreElements: (element) => {
+                        // 저장 시 툴바, UI패널, 컨트롤 버튼 등 제외
+                        if (element.id === 'ui-panel') return true;
+                        if (element.id === 'top-toolbar') return true;
+                        if (element.id === 'preview-controls') return true;
+                        if (element.id === 'loading-overlay') return true;
+                        if (element.hasAttribute('data-html2canvas-ignore')) return true;
+                        return false;
+                    }
+                });
+
+                const link = document.createElement('a');
+                link.download = 'my-christmas-tree.png';
+                link.href = canvas.toDataURL('image/png', 1.0);
+                link.click();
+                
+                showToast('저장 완료!');
+                
+                // 원래 상태 복구
+                if (!wasInPreview) body.classList.remove('preview-mode');
+
+            } catch (err) {
+                console.error(err);
+                showToast('저장 실패 ㅠㅠ');
+            } finally {
+                // 눈송이 애니메이션 복구
+                frozenStates.forEach(state => {
+                    state.element.style.animation = state.animation;
+                    state.element.style.transform = state.transform;
+                });
+                
+                loading.classList.add('hidden');
+            }
+        }
+
+        function renderPalette() {
+            paletteEl.innerHTML = '';
+            const totalPages = Math.ceil(decorations.length / itemsPerPage);
+            if (currentPage < 1) currentPage = 1;
+            if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const currentItems = decorations.slice(start, end);
+
+            document.getElementById('page-indicator').innerText = `${currentPage} / ${totalPages > 0 ? totalPages : 1}`;
+            document.getElementById('btn-prev').disabled = currentPage === 1;
+            document.getElementById('btn-next').disabled = currentPage === totalPages || totalPages === 0;
+
+            currentItems.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'shelf-slot relative w-14 h-14 md:w-16 md:h-16 flex items-center justify-center cursor-grab active:cursor-grabbing touch-none';
+                div.innerHTML = item.html;
+                const svg = div.querySelector('svg');
+                if (svg) { svg.style.width = '75%'; svg.style.height = '75%'; }
+                
+                div.addEventListener('touchstart', (e) => startDrag(e, item), {passive: false});
+                div.addEventListener('mousedown', (e) => startDrag(e, item));
+                paletteEl.appendChild(div);
+            });
+        }
+
+        function changePage(delta) {
+            currentPage += delta;
+            renderPalette();
+        }
+
+        function startDrag(e, itemData) {
+            e.preventDefault();
+            let clientX, clientY;
+            if(e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+
+            draggedItem = itemData;
+
+            activeClone = document.createElement('div');
+            activeClone.className = 'drag-clone';
+            activeClone.innerHTML = itemData.html;
+            activeClone.style.width = `${itemData.size}px`;
+            activeClone.style.height = `${itemData.size}px`;
+            activeClone.style.left = `${clientX}px`;
+            activeClone.style.top = `${clientY}px`;
+            
+            document.body.appendChild(activeClone);
+
+            document.addEventListener('touchmove', onDragMove, {passive: false});
+            document.addEventListener('touchend', onDragEnd);
+            document.addEventListener('mousemove', onDragMove);
+            document.addEventListener('mouseup', onDragEnd);
+        }
+
+        function onDragMove(e) {
+            e.preventDefault();
+            let clientX, clientY;
+            if(e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+
+            if(activeClone) {
+                activeClone.style.left = `${clientX}px`;
+                activeClone.style.top = `${clientY}px`;
+            }
+        }
+
+        function onDragEnd(e) {
+            let clientX, clientY;
+            if(e.changedTouches) {
+                clientX = e.changedTouches[0].clientX;
+                clientY = e.changedTouches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+
+            if (!draggedItem || !activeClone) return;
+
+            const dropRect = dropZone.getBoundingClientRect();
+            if (
+                clientX >= dropRect.left && 
+                clientX <= dropRect.right && 
+                clientY >= dropRect.top && 
+                clientY <= dropRect.bottom
+            ) {
+                placeItem(clientX, clientY);
+            }
+
+            activeClone.remove();
+            activeClone = null;
+            draggedItem = null;
+            document.removeEventListener('touchmove', onDragMove);
+            document.removeEventListener('touchend', onDragEnd);
+            document.removeEventListener('mousemove', onDragMove);
+            document.removeEventListener('mouseup', onDragEnd);
+        }
+
+        function placeItem(clientX, clientY) {
+            const rect = ornamentLayer.getBoundingClientRect();
+            const relativeX = clientX - rect.left;
+            const relativeY = clientY - rect.top;
+
+            const el = document.createElement('div');
+            el.className = 'placed-item';
+            el.innerHTML = draggedItem.html;
+            el.style.width = `${draggedItem.size}px`;
+            el.style.height = `${draggedItem.size}px`;
+            el.style.left = `${relativeX - (draggedItem.size / 2)}px`;
+            el.style.top = `${relativeY - (draggedItem.size / 2)}px`;
+            
+            const rotation = Math.random() * 20 - 10;
+            el.style.transform = `rotate(${rotation}deg)`;
+
+            makeDraggable(el);
+            ornamentLayer.appendChild(el);
+            createPoofEffect(clientX, clientY);
+        }
+
+        function makeDraggable(el) {
+            let isDragging = false;
+            let startX, startY;
+            let initialLeft, initialTop;
+            let hasMoved = false;
+            let lastClickTime = 0; // 더블클릭 감지용
+
+            const startHandler = function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                isDragging = true;
+                hasMoved = false;
+
+                ornamentLayer.appendChild(el);
+                el.classList.add('is-dragging');
+
+                if(e.touches) {
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                } else {
+                    startX = e.clientX;
+                    startY = e.clientY;
+                }
+                
+                initialLeft = parseFloat(el.style.left);
+                initialTop = parseFloat(el.style.top);
+
+                document.addEventListener('touchmove', moveHandler, {passive: false});
+                document.addEventListener('touchend', endHandler);
+                document.addEventListener('mousemove', moveHandler);
+                document.addEventListener('mouseup', endHandler);
+            };
+
+            const moveHandler = function(e) {
+                if (!isDragging) return;
+                e.preventDefault();
+                
+                let clientX, clientY;
+                if(e.touches) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+
+                const dx = clientX - startX;
+                const dy = clientY - startY;
+
+                if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasMoved = true;
+
+                el.style.left = `${initialLeft + dx}px`;
+                el.style.top = `${initialTop + dy}px`;
+            };
+
+            const endHandler = function(e) {
+                isDragging = false;
+                el.classList.remove('is-dragging');
+                
+                document.removeEventListener('touchmove', moveHandler);
+                document.removeEventListener('touchend', endHandler);
+                document.removeEventListener('mousemove', moveHandler);
+                document.removeEventListener('mouseup', endHandler);
+
+                const rect = dropZone.getBoundingClientRect();
+                const elRect = el.getBoundingClientRect();
+                
+                // 화면 밖으로 드래그하면 삭제
+                if (
+                    elRect.right < rect.left || 
+                    elRect.left > rect.right || 
+                    elRect.bottom < rect.top || 
+                    elRect.top > rect.bottom
+                ) {
+                    createPoofEffect(elRect.left + elRect.width/2, elRect.top + elRect.height/2);
+                    el.remove();
+                    return;
+                }
+
+                // 더블 클릭(탭) 감지 로직
+                if (!hasMoved) {
+                    const currentTime = new Date().getTime();
+                    const timeDiff = currentTime - lastClickTime;
+                    
+                    if (timeDiff < 300 && timeDiff > 0) {
+                        // 더블 탭 성공 -> 삭제
+                        const center = { x: elRect.left + elRect.width/2, y: elRect.top + elRect.height/2 };
+                        createPoofEffect(center.x, center.y);
+                        el.remove();
+                        lastClickTime = 0;
+                    } else {
+                        lastClickTime = currentTime;
+                    }
+                }
+            };
+
+            el.addEventListener('touchstart', startHandler, {passive: false});
+            el.addEventListener('mousedown', startHandler);
+        }
+
+        function createPoofEffect(x, y) {
+            const poof = document.createElement('div');
+            poof.style.position = 'fixed';
+            poof.style.left = x + 'px';
+            poof.style.top = y + 'px';
+            poof.style.transform = 'translate(-50%, -50%)';
+            poof.style.pointerEvents = 'none';
+            poof.style.zIndex = '9999';
+            poof.innerHTML = `
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="#cbd5e1">
+                    <circle cx="12" cy="12" r="10" opacity="0.8">
+                        <animate attributeName="r" from="0" to="18" dur="0.4s" fill="freeze"/>
+                        <animate attributeName="opacity" from="0.8" to="0" dur="0.4s" fill="freeze"/>
+                    </circle>
+                </svg>
+            `;
+            document.body.appendChild(poof);
+            setTimeout(() => poof.remove(), 400);
+        }
+
+        function resetTree() {
+            if(confirm('트리를 초기화할까요?')) {
+                ornamentLayer.innerHTML = '';
+            }
+        }
+
+        function createSnow() {
+            const container = document.getElementById('snow-container');
+            const flake = document.createElement('div');
+            flake.className = 'snowflake';
+            flake.innerText = ['❄', '❅', '❆', '•'][Math.floor(Math.random() * 4)];
+            const left = Math.random() * 100;
+            const size = Math.random() * 10 + 10;
+            const duration = Math.random() * 5 + 5;
+            const delay = Math.random() * 5;
+            flake.style.left = `${left}vw`;
+            flake.style.fontSize = `${size}px`;
+            flake.style.animationDuration = `${duration}s`;
+            flake.style.animationDelay = `${delay}s`;
+            container.appendChild(flake);
+            setTimeout(() => { flake.remove(); }, (duration + delay) * 1000);
+        }
+        setInterval(createSnow, 300);
+
+        renderPalette();
+    </script>
+</body>
+</html>

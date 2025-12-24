@@ -15,6 +15,7 @@
             font-weight: 700;
             overflow: hidden;
             touch-action: none;
+            /* 배경색: 크리스마스 레드 */
             background-color: #bf2e3d;
             height: 100vh;
             height: 100dvh;
@@ -36,6 +37,7 @@
         .scene-bg {
             position: absolute;
             inset: 0;
+            /* 배경 그라데이션 */
             background: radial-gradient(circle at 50% 30%, #d64552 0%, #bf2e3d 60%, #751a23 100%);
             z-index: 0;
             overflow: hidden;
@@ -52,6 +54,7 @@
             background-repeat: no-repeat;
         }
 
+        /* 눈 내리는 애니메이션 */
         .snowflake {
             position: absolute;
             top: -20px;
@@ -67,6 +70,7 @@
             to { transform: translateY(110vh) rotate(360deg); }
         }
 
+        /* LED 전구 & 별 반짝임 효과 애니메이션 */
         @keyframes led-blink {
             0% { filter: drop-shadow(0 0 2px currentColor) brightness(1); }
             50% { filter: drop-shadow(0 0 15px currentColor) brightness(1.4); }
@@ -77,6 +81,7 @@
             animation: led-blink 1.5s infinite alternate ease-in-out;
         }
 
+        /* 기본(모바일) 트리 컨테이너 스타일 */
         .tree-container {
             position: relative;
             width: 80vw; 
@@ -89,7 +94,9 @@
             transition: transform 0.3s;
         }
 
+        /* PC/태블릿 (가로가 넓은 화면) 대응 미디어 쿼리 */
         @media (min-width: 1024px) {
+            /* UI 패널을 오른쪽 사이드바로 변경 */
             #ui-panel {
                 width: 400px !important;
                 height: 100vh !important;
@@ -101,17 +108,20 @@
                 box-shadow: -10px 0 30px rgba(0,0,0,0.3) !important;
             }
 
+            /* 메인 영역이 사이드바를 침범하지 않도록 조정 */
             main {
                 width: calc(100vw - 400px) !important;
                 margin-right: 400px;
                 padding-bottom: 0 !important; 
             }
 
+            /* 상단 툴바 및 프리뷰 컨트롤 위치 조정 */
             #top-toolbar, #preview-controls {
                 width: calc(100% - 400px) !important;
                 left: 0 !important;
             }
 
+            /* PC에서는 트리 크게 */
             .tree-container {
                 width: auto !important;
                 height: 85vh !important; 
@@ -142,14 +152,14 @@
 
         /* 크기 조절 핸들 (우측 하단) */
         .resizer {
-            width: 24px; 
-            height: 24px;
+            width: 30px; 
+            height: 30px;
             background: #3b82f6;
-            border: 2px solid #fff;
+            border: 3px solid #fff;
             border-radius: 50%;
             position: absolute;
-            bottom: -12px;
-            right: -12px;
+            bottom: -15px;
+            right: -15px;
             cursor: se-resize;
             z-index: 101;
             display: none;
@@ -259,15 +269,15 @@
         .page-btn {
             background: #fff;
             color: #475569;
-            width: 54px;
-            height: 54px;
+            width: 44px; /* 크기 줄임: 54px -> 44px */
+            height: 44px; /* 크기 줄임: 54px -> 44px */
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
             border: 3px solid #cbd5e1;
             font-weight: bold;
-            font-size: 1.5rem;
+            font-size: 1.2rem; /* 폰트 줄임: 1.5rem -> 1.2rem */
         }
         .page-btn:disabled {
             opacity: 0.3;
@@ -347,6 +357,7 @@
     <div id="foreground-layer"></div>
 
     <div class="scene-bg">
+        <!-- 달(moon) 삭제됨 -->
         <div id="custom-bg-layer" class="hidden"></div>
     </div>
 
@@ -366,6 +377,7 @@
 
         <div class="tree-container flex items-center justify-center" id="drop-zone">
             
+            <!-- 기본 트리 SVG -->
             <svg id="default-tree-svg" viewBox="0 0 400 550" class="w-full h-full pointer-events-none hidden">
                 <defs>
                     <filter id="displacementFilter">
@@ -387,6 +399,7 @@
                       fill="#86efac" filter="url(#displacementFilter)" />
             </svg>
 
+            <!-- 사용자 커스텀 트리 이미지 (game/tree.png) -->
             <img id="custom-tree-img" src="game/tree.png" class="absolute inset-0 w-full h-full object-contain pointer-events-none" alt="Custom Tree" onerror="this.style.display='none'; document.getElementById('default-tree-svg').classList.remove('hidden');" draggable="false">
             
             <div id="ornaments-layer" class="absolute inset-0 w-full h-full z-30"></div>
@@ -407,7 +420,7 @@
 
     </main>
 
-    <!-- UI 패널 -->
+    <!-- UI 패널 (하단 고정: fixed bottom-0 left-0) -->
     <aside class="z-40 w-full h-[35vh] min-h-[250px] sketch-panel flex flex-col transition-transform duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] fixed bottom-0 left-0" id="ui-panel">
         
         <div class="flex-1 overflow-hidden relative flex flex-col bg-slate-50/50 pt-4 rounded-t-3xl">
@@ -416,7 +429,7 @@
 
         <div class="p-4 border-t border-slate-200 flex justify-between items-center bg-white shrink-0 pb-safe">
             <button onclick="changePage(-1)" id="btn-prev" class="page-btn">◀</button>
-            <span id="page-indicator" class="font-bold text-slate-500 text-2xl font-mono tracking-widest bg-slate-100 px-6 py-2 rounded-xl">1 / 1</span>
+            <span id="page-indicator" class="font-bold text-slate-500 text-xl font-mono tracking-widest bg-slate-100 px-4 py-1.5 rounded-xl">1 / 1</span>
             <button onclick="changePage(1)" id="btn-next" class="page-btn">▶</button>
         </div>
     </aside>
@@ -492,7 +505,15 @@
                 width: 80, 
                 height: 40 
             },
-
+            
+            // 새로운 오너먼트 추가: 'poong.png' (이미지) 사용, 미리보기는 'poong (1).png' 사용
+            { 
+                id: 'poong', 
+                name: '풍크리스마스', 
+                html: '<img src="game/poong.png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="풍크리스마스" draggable="false">', 
+                customPreview: '<img src="game/poong (1).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="풍크리스마스" draggable="false">',
+                size: 60 
+            },
             { id: 'orn1', name: '굿즈 - 달고나', html: '<img src="game/orn (1).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="굿즈 - 달고나" draggable="false">', size: 60 },
             { id: 'orn2', name: '치지직', html: '<img src="game/orn (2).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="치지직" draggable="false">', size: 60 },
             { id: 'orn3', name: '치즈', html: '<img src="game/orn (3).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="치즈" draggable="false">', size: 60 },
@@ -521,31 +542,26 @@
             { id: 'orn26', name: '선물 풍뎅이', html: '<img src="game/orn (26).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="선물 풍뎅이" draggable="false">', size: 60 },
             { id: 'orn27', name: '눈사람', html: '<img src="game/orn (27).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="눈사람" draggable="false">', size: 60 },
             { id: 'orn28', name: '양말', html: '<img src="game/orn (28).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="양말" draggable="false">', size: 60 },
-            { 
-                id: 'poong', 
-                name: '풍크리스마스', 
-                html: '<img src="game/poong.png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="풍크리스마스" draggable="false">', 
-                customPreview: '<img src="game/poong (1).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="풍크리스마스" draggable="false">',
-                size: 60 
-            },
         ];
         
         const paletteEl = document.getElementById('palette');
         const ornamentLayer = document.getElementById('ornaments-layer');
         const dropZone = document.getElementById('drop-zone');
         
+        // 반응형 아이템 개수 설정
+        let itemsPerPage = window.innerWidth >= 1024 ? 20 : 8; // PC: 20개, 모바일: 8개
         let currentPage = 1;
-        let itemsPerPage = window.innerWidth >= 1024 ? 20 : 8; // PC: 20, Mobile: 8
         
         let draggedItem = null;
         let activeClone = null;
         let selectedItem = null;
 
+        // 화면 크기 변경 시 아이템 개수 자동 조절
         window.addEventListener('resize', () => {
             const newItemsPerPage = window.innerWidth >= 1024 ? 20 : 8;
             if (newItemsPerPage !== itemsPerPage) {
                 itemsPerPage = newItemsPerPage;
-                currentPage = 1; 
+                currentPage = 1; // 페이지 초기화
                 renderPalette();
             }
         });

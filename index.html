@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>나만의 크리스마스 트리 꾸미기</title>
+    <title>나만의 풍 크리스마스 트리 꾸미기</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
@@ -130,6 +130,33 @@
             }
         }
 
+        /* [중요] 캡처(저장) 모드일 때 적용되는 강제 스타일 */
+        body.capture-mode #ui-panel,
+        body.capture-mode #top-toolbar,
+        body.capture-mode #preview-controls,
+        body.capture-mode #reset-modal {
+            display: none !important; /* UI 숨김 */
+        }
+        
+        body.capture-mode main {
+            width: 100vw !important;
+            margin-right: 0 !important;
+            padding-bottom: 0 !important;
+            background: transparent !important;
+        }
+        
+        body.capture-mode .tree-container {
+            /* 캡처 시 트리를 화면 중앙에 꽉 차게 배치 */
+            width: auto !important;
+            height: 85vh !important;
+            max-width: none !important;
+            max-height: none !important;
+            margin: 0 auto !important;
+            left: auto !important;
+            top: auto !important;
+            transform: none !important;
+        }
+
         .placed-item {
             position: absolute;
             cursor: grab; 
@@ -204,7 +231,7 @@
             border-top-right-radius: 24px;
         }
         
-        /* 오너먼트 슬롯 스타일 개선 */
+        /* 오너먼트 슬롯 스타일 */
         .shelf-slot {
             background: #fff;
             border-radius: 16px;
@@ -213,10 +240,10 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start; /* 위쪽 정렬 */
+            justify-content: flex-start; 
             padding: 6px;
-            height: auto; /* 높이 자동 조절 */
-            min-height: 110px; /* 최소 높이 보장 */
+            height: auto; 
+            min-height: 110px;
         }
         .shelf-slot:active {
             background: #f1f5f9;
@@ -225,23 +252,22 @@
         }
         .shelf-slot svg, .shelf-slot img {
             width: 100%;
-            height: 60px; /* 이미지 높이 고정 */
+            height: 60px;
             object-fit: contain;
             pointer-events: none;
-            flex-shrink: 0; /* 이미지 크기 줄어들지 않게 */
+            flex-shrink: 0;
         }
-        /* 아이템 이름 스타일 */
         .item-name {
             margin-top: 4px;
-            font-size: 0.75rem; /* 글씨 크기 */
+            font-size: 0.75rem;
             font-weight: 700;
             color: #475569;
             text-align: center;
             line-height: 1.2;
-            word-break: keep-all; /* 단어 단위 줄바꿈 */
-            display: block; /* 블록 요소로 변경하여 전체 표시 */
-            overflow: visible; /* 넘치는 텍스트 숨기지 않음 */
-            height: auto; /* 높이 제한 해제 */
+            word-break: keep-all;
+            display: block;
+            overflow: visible;
+            height: auto;
         }
 
         .tool-btn {
@@ -331,13 +357,7 @@
 </head>
 <body class="flex flex-col text-slate-800 select-none">
 
-    <div id="loading-overlay" class="hidden">
-        <svg class="animate-spin h-10 w-10 text-white mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <span>저장 중...</span>
-    </div>
+    <!-- 로딩 오버레이 삭제됨 -->
 
     <!-- 초기화 확인 모달 -->
     <div id="reset-modal" class="hidden">
@@ -353,7 +373,7 @@
     <div id="foreground-layer"></div>
 
     <div class="scene-bg">
-        <div class="moon"></div>
+        <!-- 달(moon) 삭제됨 -->
         <div id="custom-bg-layer" class="hidden"></div>
     </div>
 
@@ -425,7 +445,7 @@
 
         <div class="p-4 border-t border-slate-200 flex justify-between items-center bg-white shrink-0 pb-safe">
             <button onclick="changePage(-1)" id="btn-prev" class="page-btn">◀</button>
-            <span id="page-indicator" class="font-bold text-slate-500 text-xl font-mono tracking-widest bg-slate-100 px-4 py-1.5 rounded-xl">1 / 1</span>
+            <span id="page-indicator" class="font-bold text-slate-500 text-2xl font-mono tracking-widest bg-slate-100 px-6 py-2 rounded-xl">1 / 1</span>
             <button onclick="changePage(1)" id="btn-next" class="page-btn">▶</button>
         </div>
     </aside>
@@ -630,7 +650,7 @@
         async function saveHighQualityImage() {
             deselectAll();
             const loading = document.getElementById('loading-overlay');
-            loading.classList.remove('hidden');
+            // loading.classList.remove('hidden'); // 로딩 화면 삭제
             
             const snowflakes = document.querySelectorAll('.snowflake');
             const frozenStates = [];
@@ -706,7 +726,7 @@
                     state.element.style.transform = state.transform;
                 });
                 
-                loading.classList.add('hidden');
+                // loading.classList.add('hidden'); // 로딩 화면 삭제
             }
         }
 

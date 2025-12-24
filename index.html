@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>나만의 풍 크리스마스 트리 꾸미기</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Jua&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@700&display=swap');
@@ -128,33 +127,6 @@
                 max-width: none !important;
                 max-height: none !important;
             }
-        }
-
-        /* [중요] 캡처(저장) 모드일 때 적용되는 강제 스타일 */
-        body.capture-mode #ui-panel,
-        body.capture-mode #top-toolbar,
-        body.capture-mode #preview-controls,
-        body.capture-mode #reset-modal {
-            display: none !important; /* UI 숨김 */
-        }
-        
-        body.capture-mode main {
-            width: 100vw !important;
-            margin-right: 0 !important;
-            padding-bottom: 0 !important;
-            background: transparent !important;
-        }
-        
-        body.capture-mode .tree-container {
-            /* 캡처 시 트리를 화면 중앙에 꽉 차게 배치 */
-            width: auto !important;
-            height: 85vh !important;
-            max-width: none !important;
-            max-height: none !important;
-            margin: 0 auto !important;
-            left: auto !important;
-            top: auto !important;
-            transform: none !important;
         }
 
         .placed-item {
@@ -318,7 +290,7 @@
             filter: drop-shadow(0 15px 15px rgba(0,0,0,0.2));
         }
 
-        #loading-overlay, #reset-modal {
+        #reset-modal {
             position: fixed;
             inset: 0;
             background: rgba(0,0,0,0.7);
@@ -357,8 +329,6 @@
 </head>
 <body class="flex flex-col text-slate-800 select-none">
 
-    <!-- 로딩 오버레이 삭제됨 -->
-
     <!-- 초기화 확인 모달 -->
     <div id="reset-modal" class="hidden">
         <div class="bg-white p-6 rounded-2xl shadow-2xl text-center max-w-xs mx-4 animation-popup">
@@ -381,7 +351,7 @@
 
     <main class="relative flex-1 flex flex-col items-center justify-center w-full overflow-hidden z-20" id="capture-area">
         
-        <div id="top-toolbar" class="absolute top-6 left-0 w-full px-5 flex justify-between items-center z-50 pointer-events-auto" data-html2canvas-ignore>
+        <div id="top-toolbar" class="absolute top-6 left-0 w-full px-5 flex justify-between items-center z-50 pointer-events-auto">
             <button onclick="openResetModal()" class="tool-btn bg-white/90 font-bold" title="새로고침">
                 <span class="mr-2 text-xl">🔄</span> 새로고침
             </button>
@@ -425,12 +395,9 @@
             완료!
         </div>
 
-        <div id="preview-controls" class="absolute bottom-8 left-0 w-full px-6 flex justify-center gap-4 z-50 pointer-events-auto" data-html2canvas-ignore>
+        <div id="preview-controls" class="absolute bottom-8 left-0 w-full px-6 flex justify-center gap-4 z-50 pointer-events-auto">
             <button onclick="togglePreviewMode(false)" class="bg-white/90 backdrop-blur text-slate-700 px-8 py-4 rounded-full font-bold shadow-lg border-2 border-slate-200 hover:bg-slate-50 transition-transform active:scale-95 text-xl">
                 ✏️ 편집하기
-            </button>
-            <button onclick="saveHighQualityImage()" class="bg-slate-800 text-white px-10 py-4 rounded-full font-bold shadow-lg border-2 border-slate-600 hover:bg-slate-900 transition-transform active:scale-95 flex items-center gap-2 text-xl">
-                📸 저장하기
             </button>
         </div>
 
@@ -445,7 +412,7 @@
 
         <div class="p-4 border-t border-slate-200 flex justify-between items-center bg-white shrink-0 pb-safe">
             <button onclick="changePage(-1)" id="btn-prev" class="page-btn">◀</button>
-            <span id="page-indicator" class="font-bold text-slate-500 text-2xl font-mono tracking-widest bg-slate-100 px-6 py-2 rounded-xl">1 / 1</span>
+            <span id="page-indicator" class="font-bold text-slate-500 text-xl font-mono tracking-widest bg-slate-100 px-4 py-1.5 rounded-xl">1 / 1</span>
             <button onclick="changePage(1)" id="btn-next" class="page-btn">▶</button>
         </div>
     </aside>
@@ -644,89 +611,6 @@
                 body.classList.add('preview-mode');
             } else {
                 body.classList.remove('preview-mode');
-            }
-        }
-
-        async function saveHighQualityImage() {
-            deselectAll();
-            const loading = document.getElementById('loading-overlay');
-            // loading.classList.remove('hidden'); // 로딩 화면 삭제
-            
-            const snowflakes = document.querySelectorAll('.snowflake');
-            const frozenStates = [];
-            
-            snowflakes.forEach(flake => {
-                const computed = window.getComputedStyle(flake);
-                const transform = computed.transform;
-                
-                frozenStates.push({
-                    element: flake,
-                    animation: flake.style.animation,
-                    transform: flake.style.transform
-                });
-
-                flake.style.animation = 'none';
-                flake.style.transform = transform; 
-            });
-
-            await new Promise(resolve => setTimeout(resolve, 350));
-
-            const mainElement = document.getElementById('capture-area');
-            const isPc = window.innerWidth >= 1024;
-            
-            if (isPc) {
-                mainElement.style.setProperty('width', '100vw', 'important');
-                mainElement.style.setProperty('margin-right', '0', 'important');
-            }
-
-            try {
-                const body = document.body;
-                const wasInPreview = body.classList.contains('preview-mode');
-                if (!wasInPreview) body.classList.add('preview-mode');
-
-                await new Promise(resolve => setTimeout(resolve, 100));
-
-                const captureElement = document.body; 
-
-                const canvas = await html2canvas(captureElement, {
-                    scale: 3, 
-                    backgroundColor: null,
-                    useCORS: true,
-                    ignoreElements: (element) => {
-                        if (element.id === 'ui-panel') return true;
-                        if (element.id === 'top-toolbar') return true;
-                        if (element.id === 'preview-controls') return true;
-                        if (element.id === 'loading-overlay') return true;
-                        if (element.id === 'reset-modal') return true;
-                        if (element.hasAttribute('data-html2canvas-ignore')) return true;
-                        return false;
-                    }
-                });
-
-                const link = document.createElement('a');
-                link.download = 'my-christmas-tree.png';
-                link.href = canvas.toDataURL('image/png', 1.0);
-                link.click();
-                
-                showToast('저장 완료!');
-                
-                if (!wasInPreview) body.classList.remove('preview-mode');
-
-            } catch (err) {
-                console.error(err);
-                showToast('저장 실패 ㅠㅠ');
-            } finally {
-                if (isPc) {
-                    mainElement.style.removeProperty('width');
-                    mainElement.style.removeProperty('margin-right');
-                }
-
-                frozenStates.forEach(state => {
-                    state.element.style.animation = state.animation;
-                    state.element.style.transform = state.transform;
-                });
-                
-                // loading.classList.add('hidden'); // 로딩 화면 삭제
             }
         }
 

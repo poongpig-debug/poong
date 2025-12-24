@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>나만의 풍 크리스마스 트리 꾸미기</title>
+    <title>나만의 크리스마스 트리 꾸미기</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
@@ -15,7 +15,6 @@
             font-weight: 700;
             overflow: hidden;
             touch-action: none;
-            /* 배경색: 크리스마스 레드 */
             background-color: #bf2e3d;
             height: 100vh;
             height: 100dvh;
@@ -37,7 +36,6 @@
         .scene-bg {
             position: absolute;
             inset: 0;
-            /* 배경 그라데이션 */
             background: radial-gradient(circle at 50% 30%, #d64552 0%, #bf2e3d 60%, #751a23 100%);
             z-index: 0;
             overflow: hidden;
@@ -54,7 +52,6 @@
             background-repeat: no-repeat;
         }
 
-        /* 눈 내리는 애니메이션 */
         .snowflake {
             position: absolute;
             top: -20px;
@@ -70,7 +67,6 @@
             to { transform: translateY(110vh) rotate(360deg); }
         }
 
-        /* LED 전구 & 별 반짝임 효과 애니메이션 */
         @keyframes led-blink {
             0% { filter: drop-shadow(0 0 2px currentColor) brightness(1); }
             50% { filter: drop-shadow(0 0 15px currentColor) brightness(1.4); }
@@ -81,7 +77,6 @@
             animation: led-blink 1.5s infinite alternate ease-in-out;
         }
 
-        /* 기본(모바일) 트리 컨테이너 스타일 */
         .tree-container {
             position: relative;
             width: 80vw; 
@@ -94,9 +89,8 @@
             transition: transform 0.3s;
         }
 
-        /* PC/태블릿 (가로가 넓은 화면) 대응 미디어 쿼리 */
+        /* PC 버전 레이아웃 */
         @media (min-width: 1024px) {
-            /* UI 패널을 오른쪽 사이드바로 변경 */
             #ui-panel {
                 width: 400px !important;
                 height: 100vh !important;
@@ -108,20 +102,17 @@
                 box-shadow: -10px 0 30px rgba(0,0,0,0.3) !important;
             }
 
-            /* 메인 영역이 사이드바를 침범하지 않도록 조정 */
             main {
                 width: calc(100vw - 400px) !important;
                 margin-right: 400px;
                 padding-bottom: 0 !important; 
             }
 
-            /* 상단 툴바 및 프리뷰 컨트롤 위치 조정 */
             #top-toolbar, #preview-controls {
                 width: calc(100% - 400px) !important;
                 left: 0 !important;
             }
 
-            /* PC에서는 트리 크게 */
             .tree-container {
                 width: auto !important;
                 height: 85vh !important; 
@@ -137,7 +128,7 @@
             touch-action: none;
             z-index: 50;
             box-sizing: border-box;
-            transform-origin: center center; /* 회전 중심 */
+            transform-origin: center center;
         }
         .placed-item.is-dragging {
             cursor: grabbing;
@@ -150,7 +141,6 @@
             z-index: 90;
         }
 
-        /* 크기 조절 핸들 (우측 하단) */
         .resizer {
             width: 30px; 
             height: 30px;
@@ -166,7 +156,6 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
-        /* 회전 조절 핸들 (상단 중앙) */
         .rotator {
             width: 24px;
             height: 24px;
@@ -182,7 +171,6 @@
             display: none;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
-        /* 회전 핸들 연결선 */
         .rotator::after {
             content: '';
             position: absolute;
@@ -207,6 +195,7 @@
             border-top-right-radius: 24px;
         }
         
+        /* [수정] 오너먼트 슬롯 스타일 개선 (글씨 잘림 방지) */
         .shelf-slot {
             background: #fff;
             border-radius: 16px;
@@ -215,9 +204,10 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start; /* 위쪽 정렬 */
             padding: 6px;
-            height: 110px;
+            height: auto; /* 높이 자동 조절 */
+            min-height: 110px; /* 최소 높이 보장 */
         }
         .shelf-slot:active {
             background: #f1f5f9;
@@ -226,26 +216,23 @@
         }
         .shelf-slot svg, .shelf-slot img {
             width: 100%;
-            height: 55%;
+            height: 60px; /* 이미지 높이 고정 */
             object-fit: contain;
             pointer-events: none;
+            flex-shrink: 0; /* 이미지 크기 줄어들지 않게 */
         }
+        /* [수정] 아이템 이름 스타일 (모바일 최적화) */
         .item-name {
-            margin-top: 6px;
-            font-size: 0.85rem;
+            margin-top: 4px;
+            font-size: 0.75rem; /* 글씨 크기 약간 축소 */
             font-weight: 700;
             color: #475569;
             text-align: center;
-            line-height: 1.1;
-            word-break: keep-all;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            height: 2.4rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            line-height: 1.2;
+            word-break: keep-all; /* 단어 단위 줄바꿈 */
+            display: block; /* 블록 요소로 변경하여 전체 표시 */
+            overflow: visible; /* 넘치는 텍스트 숨기지 않음 */
+            height: auto; /* 높이 제한 해제 */
         }
 
         .tool-btn {
@@ -269,15 +256,15 @@
         .page-btn {
             background: #fff;
             color: #475569;
-            width: 44px; /* 크기 줄임: 54px -> 44px */
-            height: 44px; /* 크기 줄임: 54px -> 44px */
+            width: 44px;
+            height: 44px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
             border: 3px solid #cbd5e1;
             font-weight: bold;
-            font-size: 1.2rem; /* 폰트 줄임: 1.5rem -> 1.2rem */
+            font-size: 1.2rem;
         }
         .page-btn:disabled {
             opacity: 0.3;
@@ -421,7 +408,7 @@
     </main>
 
     <!-- UI 패널 (하단 고정: fixed bottom-0 left-0) -->
-    <aside class="z-40 w-full h-[35vh] min-h-[250px] sketch-panel flex flex-col transition-transform duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] fixed bottom-0 left-0" id="ui-panel">
+    <aside class="z-40 w-full h-[40vh] min-h-[250px] sketch-panel flex flex-col transition-transform duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] fixed bottom-0 left-0" id="ui-panel">
         
         <div class="flex-1 overflow-hidden relative flex flex-col bg-slate-50/50 pt-4 rounded-t-3xl">
             <div id="palette" class="flex-1 p-4 grid grid-cols-4 gap-3 content-start justify-items-center overflow-y-auto"></div>
@@ -467,7 +454,7 @@
             { id: 'gingerbread', name: '진저브레드맨', html: '<svg viewBox="0 0 24 24"><path d="M12 2c-1.7 0-3 1.3-3 3c0 .6.2 1.2.5 1.7L6 9c-.6.2-1 .8-1 1.5v1c0 .8.7 1.5 1.5 1.5h.5l1 4l-1 2c-.3.6 0 1.4.6 1.8l.9.4c.6.3 1.4 0 1.8-.6l1.7-3.4h2l1.7 3.4c.3.6 1.1.9 1.8.6l.9-.4c.6-.3.9-1.1.6-1.8l-1-2l1-4h.5c.8 0 1.5-.7 1.5-1.5v-1c0-.7-.4-1.3-1-1.5l-3.5-2.3c.3-.5.5-1.1.5-1.7c0-1.7-1.3-3-3-3z" fill="#cd853f" stroke="#8b4513" stroke-width="1"/><circle cx="11" cy="4" r="0.8" fill="white"/><circle cx="13" cy="4" r="0.8" fill="white"/><circle cx="12" cy="9" r="0.8" fill="#ef4444"/><circle cx="12" cy="12" r="0.8" fill="#ef4444"/><path d="M11 6q1 1 2 0" stroke="white" stroke-width="0.8" fill="none"/></svg>', size: 60 },
             { id: 'ribbon', name: '리본', html: '<svg viewBox="0 0 50 50"><path d="M25 25 C 15 15 5 15 5 25 C 5 35 15 35 25 25 Z" fill="#ef4444" stroke="#991b1b" stroke-width="1.5"/><path d="M25 25 C 35 15 45 15 45 25 C 45 35 35 35 25 25 Z" fill="#ef4444" stroke="#991b1b" stroke-width="1.5"/><path d="M25 25 L 18 45 L 25 40 L 32 45 L 25 25" fill="#ef4444" stroke="#991b1b" stroke-width="1.5"/><circle cx="25" cy="25" r="4" fill="#b91c1c"/></svg>', size: 60 },
 
-            // DVL-10 (대나무총)
+            // DVL-10 (대나무총): 이전에 좋았던 버전 (선명한 SVG)
             { 
                 id: 'dvl10', 
                 name: 'DVL-10(대나무총)', 
@@ -476,10 +463,10 @@
                 height: 50 
             },
 
-            // 그래픽카드
+            // 그래픽카드 (SVG)
             { id: 'gpu', name: '그래픽카드', html: '<svg viewBox="0 0 100 60"><rect x="5" y="10" width="90" height="40" rx="4" fill="#374151" stroke="#1f2937" stroke-width="2"/><circle cx="30" cy="30" r="15" fill="#1f2937" stroke="#9ca3af" stroke-width="2"/><circle cx="70" cy="30" r="15" fill="#1f2937" stroke="#9ca3af" stroke-width="2"/><rect x="5" y="50" width="90" height="5" fill="#fbbf24"/><path d="M25 30 L35 30 M30 25 L30 35" stroke="#4b5563" stroke-width="2"/><path d="M65 30 L75 30 M70 25 L70 35" stroke="#4b5563" stroke-width="2"/></svg>', width: 100, height: 60 },
 
-            // COFDM(라디오)
+            // COFDM(라디오): #3f3f3f (짙은 회색) 버전
             { 
                 id: 'cofdm', 
                 name: 'COFDM(라디오)', 
@@ -505,15 +492,8 @@
                 width: 80, 
                 height: 40 
             },
-            
-            // 새로운 오너먼트 추가: 'poong.png' (이미지) 사용, 미리보기는 'poong (1).png' 사용
-            { 
-                id: 'poong', 
-                name: '풍크리스마스', 
-                html: '<img src="game/poong.png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="풍크리스마스" draggable="false">', 
-                customPreview: '<img src="game/poong (1).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="풍크리스마스" draggable="false">',
-                size: 60 
-            },
+
+            // 추가된 이미지 오너먼트 28종
             { id: 'orn1', name: '굿즈 - 달고나', html: '<img src="game/orn (1).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="굿즈 - 달고나" draggable="false">', size: 60 },
             { id: 'orn2', name: '치지직', html: '<img src="game/orn (2).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="치지직" draggable="false">', size: 60 },
             { id: 'orn3', name: '치즈', html: '<img src="game/orn (3).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="치즈" draggable="false">', size: 60 },
@@ -542,6 +522,14 @@
             { id: 'orn26', name: '선물 풍뎅이', html: '<img src="game/orn (26).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="선물 풍뎅이" draggable="false">', size: 60 },
             { id: 'orn27', name: '눈사람', html: '<img src="game/orn (27).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="눈사람" draggable="false">', size: 60 },
             { id: 'orn28', name: '양말', html: '<img src="game/orn (28).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="양말" draggable="false">', size: 60 },
+            // 새로운 오너먼트 추가: 'poong.png' (이미지) 사용, 미리보기는 'poong (1).png' 사용
+            { 
+                id: 'poong', 
+                name: '풍크리스마스', 
+                html: '<img src="game/poong.png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="풍크리스마스" draggable="false">', 
+                customPreview: '<img src="game/poong (1).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="풍크리스마스" draggable="false">',
+                size: 60 
+            },
         ];
         
         const paletteEl = document.getElementById('palette');
@@ -767,6 +755,7 @@
 
             activeClone = document.createElement('div');
             activeClone.className = 'drag-clone';
+            // 드래그 중에는 실제 오너먼트 이미지(html)를 보여줌 (미리보기 아이콘 아님)
             activeClone.innerHTML = itemData.html;
             
             const w = itemData.width || itemData.size;
@@ -835,10 +824,12 @@
             const el = document.createElement('div');
             el.className = 'placed-item';
             
+            // LED 전구 및 별 반짝임 효과 적용
             if (draggedItem.type === 'light' || draggedItem.id === 'star') {
                 el.classList.add('led-anim');
             }
 
+            // 트리에 배치될 때는 실제 오너먼트 이미지(html) 사용
             el.innerHTML = draggedItem.html + '<div class="resizer"></div><div class="rotator"></div>';
             
             const w = draggedItem.width || draggedItem.size;

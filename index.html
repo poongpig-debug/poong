@@ -14,7 +14,8 @@
             font-weight: 700;
             overflow: hidden;
             touch-action: none;
-            background-color: #2a5446;
+            /* 배경색 변경: 짙은 와인색 (크리스마스 분위기 + 트리 강조) */
+            background-color: #4a0e0e;
             height: 100vh;
             height: 100dvh;
             -webkit-touch-callout: none;
@@ -35,7 +36,8 @@
         .scene-bg {
             position: absolute;
             inset: 0;
-            background: radial-gradient(circle at 50% 30%, #3e7a65 0%, #2a5446 60%, #12241e 100%);
+            /* 배경 그라데이션: 짙은 빨강 -> 아주 어두운 빨강 (녹색 트리와 보색 대비) */
+            background: radial-gradient(circle at 50% 30%, #7f1d1d 0%, #450a0a 70%, #1a0505 100%);
             z-index: 0;
             overflow: hidden;
         }
@@ -51,17 +53,7 @@
             background-repeat: no-repeat;
         }
 
-        .moon {
-            position: absolute;
-            top: 5%;
-            right: 10%;
-            width: 80px;
-            height: 80px;
-            background: #fdf6e3;
-            border-radius: 50%;
-            box-shadow: 0 0 50px rgba(253, 246, 227, 0.4);
-            filter: blur(1px);
-        }
+        /* 달(moon) 스타일 삭제됨 */
 
         /* 눈 내리는 애니메이션 */
         .snowflake {
@@ -97,7 +89,7 @@
             height: auto;
             max-height: 55vh; 
             aspect-ratio: 340/480;
-            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.3));
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5)); /* 그림자 조금 더 진하게 */
             z-index: 20;
             transition: transform 0.3s;
         }
@@ -156,8 +148,8 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 6px; /* 패딩 축소 */
-            height: 110px; /* 높이 증가 (이름 공간 확보) */
+            padding: 6px;
+            height: 110px;
         }
         .shelf-slot:active {
             background: #f1f5f9;
@@ -166,23 +158,23 @@
         }
         .shelf-slot svg, .shelf-slot img {
             width: 100%;
-            height: 55%; /* 이미지 영역 비율 조정 */
+            height: 55%;
             object-fit: contain;
             pointer-events: none;
         }
         .item-name {
             margin-top: 6px;
-            font-size: 0.85rem; /* 글씨 크기 조정 (모바일 가독성) */
+            font-size: 0.85rem;
             font-weight: 700;
             color: #475569;
             text-align: center;
             line-height: 1.1;
-            word-break: keep-all; /* 단어 단위 줄바꿈 */
+            word-break: keep-all;
             display: -webkit-box;
-            -webkit-line-clamp: 3; /* 최대 3줄까지 표시 (짤림 방지) */
+            -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
-            height: 2.4rem; /* 텍스트 영역 높이 확보 (약 3줄) */
+            height: 2.4rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -297,7 +289,7 @@
     <div id="foreground-layer"></div>
 
     <div class="scene-bg">
-        <div class="moon"></div>
+        <!-- 달(moon) 삭제됨 -->
         <div id="custom-bg-layer" class="hidden"></div>
     </div>
 
@@ -359,7 +351,7 @@
     </main>
 
     <!-- UI 패널 (하단 고정: fixed bottom-0 left-0) -->
-    <aside class="z-40 w-full h-[40vh] min-h-[250px] sketch-panel flex flex-col transition-transform duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] fixed bottom-0 left-0" id="ui-panel">
+    <aside class="z-40 w-full h-[35vh] min-h-[250px] sketch-panel flex flex-col transition-transform duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] fixed bottom-0 left-0" id="ui-panel">
         
         <div class="flex-1 overflow-hidden relative flex flex-col bg-slate-50/50 pt-4 rounded-t-3xl">
             <div id="palette" class="flex-1 p-4 grid grid-cols-4 gap-3 content-start justify-items-center overflow-y-auto"></div>
@@ -404,69 +396,6 @@
             { id: 'gift', name: '선물 상자', html: '<svg viewBox="0 0 24 24"><rect x="4" y="9" width="16" height="13" rx="2" fill="#86efac" stroke="#22c55e" stroke-width="1.5"/><rect x="10" y="9" width="4" height="13" fill="#ef4444"/><rect x="2" y="6" width="20" height="4" rx="1" fill="#ef4444"/><path d="M12 6L8 2M12 6L16 2" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/></svg>', size: 60 },
             { id: 'gingerbread', name: '진저브레드맨', html: '<svg viewBox="0 0 24 24"><path d="M12 2c-1.7 0-3 1.3-3 3c0 .6.2 1.2.5 1.7L6 9c-.6.2-1 .8-1 1.5v1c0 .8.7 1.5 1.5 1.5h.5l1 4l-1 2c-.3.6 0 1.4.6 1.8l.9.4c.6.3 1.4 0 1.8-.6l1.7-3.4h2l1.7 3.4c.3.6 1.1.9 1.8.6l.9-.4c.6-.3.9-1.1.6-1.8l-1-2l1-4h.5c.8 0 1.5-.7 1.5-1.5v-1c0-.7-.4-1.3-1-1.5l-3.5-2.3c.3-.5.5-1.1.5-1.7c0-1.7-1.3-3-3-3z" fill="#cd853f" stroke="#8b4513" stroke-width="1"/><circle cx="11" cy="4" r="0.8" fill="white"/><circle cx="13" cy="4" r="0.8" fill="white"/><circle cx="12" cy="9" r="0.8" fill="#ef4444"/><circle cx="12" cy="12" r="0.8" fill="#ef4444"/><path d="M11 6q1 1 2 0" stroke="white" stroke-width="0.8" fill="none"/></svg>', size: 60 },
             { id: 'ribbon', name: '리본', html: '<svg viewBox="0 0 50 50"><path d="M25 25 C 15 15 5 15 5 25 C 5 35 15 35 25 25 Z" fill="#ef4444" stroke="#991b1b" stroke-width="1.5"/><path d="M25 25 C 35 15 45 15 45 25 C 45 35 35 35 25 25 Z" fill="#ef4444" stroke="#991b1b" stroke-width="1.5"/><path d="M25 25 L 18 45 L 25 40 L 32 45 L 25 25" fill="#ef4444" stroke="#991b1b" stroke-width="1.5"/><circle cx="25" cy="25" r="4" fill="#b91c1c"/></svg>', size: 60 },
-
-            // DVL-10(대나무총) - 타르코프 DVL-10 Saboteur 스타일로 변경 (SVG 복구)
-            { 
-                id: 'dvl10', 
-                name: 'DVL-10(대나무총)', 
-                html: '<svg viewBox="0 0 140 50" stroke-linejoin="round" stroke-linecap="round">' +
-                      '<path d="M10 20 L35 20 L35 30 L15 38 L5 30 Z" fill="#4ade80" stroke="#15803d" stroke-width="1.5"/>' +
-                      '<path d="M35 30 L32 45 L42 45 L45 30 Z" fill="#4ade80" stroke="#15803d" stroke-width="1.5"/>' +
-                      '<rect x="35" y="18" width="30" height="12" fill="#374151" stroke="#111827" stroke-width="1.5"/>' +
-                      '<path d="M42 30 Q45 35 48 30" fill="none" stroke="#111827" stroke-width="1"/>' +
-                      // 총구 앞쪽 선 제거된 대나무 모양 소음기 (path로 수정)
-                      '<path d="M65 19 L135 19 L135 29 L65 29 Z" fill="#4ade80" stroke="#15803d" stroke-width="1.5"/>' + 
-                      '<rect x="38" y="8" width="35" height="6" rx="1" fill="#1f2937" stroke="#000" stroke-width="1"/>' +
-                      '<rect x="35" y="7" width="5" height="8" rx="1" fill="#1f2937"/>' + 
-                      '<rect x="70" y="7" width="8" height="8" rx="1" fill="#1f2937"/>' + 
-                      '<path d="M45 14 L45 18 M60 14 L60 18" stroke="#111827" stroke-width="2"/>' +
-                      '<line x1="58" y1="22" x2="62" y2="26" stroke="#000" stroke-width="2"/>' +
-                      '</svg>',
-                width: 140, 
-                height: 50 
-            },
-            
-            // 그래픽카드 (SVG 복구)
-            { id: 'gpu', name: '그래픽카드', html: '<svg viewBox="0 0 100 60"><rect x="5" y="10" width="90" height="40" rx="4" fill="#374151" stroke="#1f2937" stroke-width="2"/><circle cx="30" cy="30" r="15" fill="#1f2937" stroke="#9ca3af" stroke-width="2"/><circle cx="70" cy="30" r="15" fill="#1f2937" stroke="#9ca3af" stroke-width="2"/><rect x="5" y="50" width="90" height="5" fill="#fbbf24"/><path d="M25 30 L35 30 M30 25 L30 35" stroke="#4b5563" stroke-width="2"/><path d="M65 30 L75 30 M70 25 L70 35" stroke="#4b5563" stroke-width="2"/></svg>', width: 100, height: 60 },
-
-            // COFDM 송신기 (SVG 복구)
-            { 
-                id: 'cofdm', 
-                name: 'COFDM(라디오)', 
-                html: '<svg viewBox="0 0 64 85">' +
-                      '<line x1="22" y1="25" x2="22" y2="5" stroke="#1f2937" stroke-width="4" stroke-linecap="round" />' +
-                      '<line x1="42" y1="25" x2="42" y2="5" stroke="#1f2937" stroke-width="4" stroke-linecap="round" />' +
-                      '<rect x="12" y="25" width="40" height="55" rx="3" fill="#4b5320" stroke="#1f2937" stroke-width="2"/>' +
-                      '<rect x="16" y="32" width="32" height="20" fill="#111827" rx="1" />' +
-                      '<rect x="18" y="34" width="28" height="16" fill="#84cc16" opacity="0.7" />' +
-                      '<circle cx="20" cy="62" r="2.5" fill="#1f2937" />' +
-                      '<circle cx="32" cy="62" r="2.5" fill="#1f2937" />' +
-                      '<circle cx="44" cy="62" r="2.5" fill="#1f2937" />' +
-                      '<circle cx="20" cy="70" r="2.5" fill="#1f2937" />' +
-                      '<circle cx="32" cy="70" r="2.5" fill="#1f2937" />' +
-                      '<circle cx="44" cy="70" r="2.5" fill="#b91c1c" />' + 
-                      '</svg>',
-                width: 64, 
-                height: 85 
-            },
-
-            // PlayStation 5 (SVG 복구)
-            { 
-                id: 'ps5', 
-                name: '플레이스테이션5', 
-                html: '<svg viewBox="0 0 60 80"><path d="M12 75 C 8 50 8 20 12 5 L 48 5 C 52 20 52 50 48 75 Z" fill="#111827" /><path d="M12 75 C 2 75 2 5 12 5 C 15 5 15 75 12 75 Z" fill="#f3f4f6" stroke="#e5e7eb" /><path d="M48 75 C 58 75 58 5 48 5 C 45 5 45 75 48 75 Z" fill="#f3f4f6" stroke="#e5e7eb" /><circle cx="20" cy="15" r="1" fill="#3b82f6" opacity="0.8"/></svg>', 
-                width: 60, 
-                height: 80 
-            },
-            
-            // Switch 2 (SVG 복구)
-            { 
-                id: 'switch2', 
-                name: '스위치2', 
-                html: '<svg viewBox="0 0 80 40"><rect x="10" y="5" width="60" height="30" rx="2" fill="#1f2937" stroke="#374151" stroke-width="2"/><rect x="15" y="8" width="50" height="24" fill="#000" /><path d="M10 5 Q 0 5 0 20 Q 0 35 10 35 Z" fill="#0ea5e9" /><path d="M70 5 Q 80 5 80 20 Q 80 35 70 35 Z" fill="#ef4444" /><circle cx="5" cy="12" r="2" fill="#1f2937" opacity="0.5"/><circle cx="5" cy="18" r="2" fill="#1f2937" opacity="0.5"/><circle cx="5" cy="24" r="2" fill="#1f2937" opacity="0.5"/><circle cx="5" cy="30" r="2" fill="#1f2937" opacity="0.5"/><circle cx="75" cy="15" r="3" fill="#1f2937" opacity="0.5"/><circle cx="75" cy="25" r="1.5" fill="#1f2937" opacity="0.5"/></svg>', 
-                width: 80, 
-                height: 40 
-            },
 
             // 추가된 이미지 오너먼트 28종
             { id: 'orn1', name: '굿즈 - 달고나', html: '<img src="game/orn (1).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="굿즈 - 달고나" draggable="false">', size: 60 },

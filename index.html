@@ -5,64 +5,52 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>나만의 크리스마스 트리 꾸미기</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- html2canvas 라이브러리 추가 (고화질 저장용) -->
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Gaegu&family=Jua&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Jua&display=swap');
 
         body {
-            font-family: 'Jua', sans-serif;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-weight: 700;
             overflow: hidden;
             touch-action: none;
-            background-color: #2c2541;
+            background-color: #2a5446;
             height: 100vh;
             height: 100dvh;
-            /* [중요] 모바일에서 길게 눌러서 저장하는 메뉴 차단 */
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             user-select: none;
         }
 
-        /* [중요] 이미지 저장 방지용 강력한 스타일 */
         img {
-            /* 1. 드래그해서 저장하기 방지 */
             -webkit-user-drag: none;
             -khtml-user-drag: none;
             -moz-user-drag: none;
             -o-user-drag: none;
             user-drag: none;
-            
-            /* 2. 이미지가 클릭 이벤트를 받지 않도록 하여 우클릭/롱탭 메뉴 원천 차단 */
-            /* (게임의 드래그 동작은 부모 div가 처리하므로 플레이에는 지장 없음) */
             pointer-events: none; 
-            
-            /* 3. 선택 방지 */
             user-select: none;
         }
 
-        /* --- 배경 (Scene) --- */
         .scene-bg {
             position: absolute;
             inset: 0;
-            background: radial-gradient(circle at 50% 30%, #4c4668 0%, #2d2644 60%, #1a1626 100%);
+            background: radial-gradient(circle at 50% 30%, #3e7a65 0%, #2a5446 60%, #12241e 100%);
             z-index: 0;
             overflow: hidden;
         }
 
-        /* --- 전경 (프레임) --- */
         #foreground-layer {
             position: absolute;
             inset: 0;
             z-index: 100;
             pointer-events: none;
-            /* 경로 수정: game/ 제거 */
             background-image: url('game/Untitled-1.png'); 
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
         }
 
-        /* 배경 장식들 */
         .moon {
             position: absolute;
             top: 5%;
@@ -73,29 +61,6 @@
             border-radius: 50%;
             box-shadow: 0 0 50px rgba(253, 246, 227, 0.4);
             filter: blur(1px);
-        }
-
-        /* 트리 밑을 일자로 변경 (평평한 땅) */
-        .hill {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 20%;
-            background: #e8eaed;
-            box-shadow: inset 0 10px 20px #94a3b8;
-        }
-        .hill-back {
-            position: absolute;
-            bottom: 10%;
-            right: 0;
-            width: 100%;
-            height: 20%;
-            background: #cbd5e1;
-            transform: skewY(-2deg);
-            transform-origin: bottom right;
-            z-index: -1;
-            opacity: 0.7;
         }
 
         /* 눈 내리는 애니메이션 */
@@ -114,7 +79,17 @@
             to { transform: translateY(110vh) rotate(360deg); }
         }
 
-        /* 트리 컨테이너 크기 조정 */
+        /* LED 전구 & 별 반짝임 효과 애니메이션 */
+        @keyframes led-blink {
+            0% { filter: drop-shadow(0 0 2px currentColor) brightness(1); }
+            50% { filter: drop-shadow(0 0 15px currentColor) brightness(1.4); }
+            100% { filter: drop-shadow(0 0 2px currentColor) brightness(1); }
+        }
+        
+        .placed-item.led-anim {
+            animation: led-blink 1.5s infinite alternate ease-in-out;
+        }
+
         .tree-container {
             position: relative;
             width: 80vw; 
@@ -127,27 +102,47 @@
             transition: transform 0.3s;
         }
 
-        /* 아이템 스타일 */
         .placed-item {
             position: absolute;
             cursor: grab; 
-            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             filter: drop-shadow(2px 3px 0px rgba(0,0,0,0.2));
             touch-action: none;
             z-index: 50;
+            box-sizing: border-box;
         }
         .placed-item.is-dragging {
             cursor: grabbing;
             filter: drop-shadow(0 15px 15px rgba(0,0,0,0.4));
             z-index: 100; 
-            transform: scale(1.2);
+        }
+
+        .placed-item.selected {
+            border: 2px dashed #3b82f6;
+            z-index: 90;
+        }
+
+        .resizer {
+            width: 30px; 
+            height: 30px;
+            background: #3b82f6;
+            border: 3px solid #fff;
+            border-radius: 50%;
+            position: absolute;
+            bottom: -15px;
+            right: -15px;
+            cursor: se-resize;
+            z-index: 101;
+            display: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         
-        /* UI 패널 */
+        .placed-item.selected .resizer {
+            display: block;
+        }
+        
         .sketch-panel {
             background: #fdfbf7;
             box-shadow: 0 -10px 30px rgba(0,0,0,0.15);
-            font-family: 'Gaegu', cursive;
             border-top-left-radius: 24px;
             border-top-right-radius: 24px;
         }
@@ -157,42 +152,68 @@
             border-radius: 16px;
             border: 2px dashed #cbd5e1;
             transition: all 0.1s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            height: 100px;
         }
         .shelf-slot:active {
             background: #f1f5f9;
             border-color: #94a3b8;
             transform: scale(0.95);
         }
+        .shelf-slot svg, .shelf-slot img {
+            width: 100%;
+            height: 60%;
+            object-fit: contain;
+            pointer-events: none;
+        }
+        .item-name {
+            margin-top: 4px;
+            font-size: 0.9rem; /* 글씨 크기 조정 */
+            font-weight: 700;
+            color: #475569;
+            text-align: center;
+            line-height: 1.2;
+            word-break: keep-all;
+            display: -webkit-box;
+            -webkit-line-clamp: 2; /* 최대 2줄까지만 표시 */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
 
         .tool-btn {
             background: #fff;
             border: 2px solid #94a3b8;
             color: #475569;
-            border-radius: 12px;
-            padding: 8px;
+            border-radius: 16px;
+            padding: 10px 16px;
             transition: all 0.1s;
-            box-shadow: 0 2px 0 #cbd5e1;
+            box-shadow: 0 4px 0 #cbd5e1;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 1.1rem;
         }
         .tool-btn:active {
             transform: translateY(2px);
-            box-shadow: none;
+            box-shadow: 0 2px 0 #cbd5e1;
         }
 
         .page-btn {
             background: #fff;
             color: #475569;
-            width: 44px;
-            height: 44px;
+            width: 54px;
+            height: 54px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
-            border: 2px solid #cbd5e1;
+            border: 3px solid #cbd5e1;
             font-weight: bold;
-            font-size: 1.2rem;
+            font-size: 1.5rem;
         }
         .page-btn:disabled {
             opacity: 0.3;
@@ -203,11 +224,6 @@
             transform: scale(0.95);
         }
 
-        .hidden-input { display: none; }
-        #custom-tree-img, #custom-bg-layer { pointer-events: none; }
-        #custom-bg-layer { position: absolute; inset: 0; background-size: cover; background-position: center; z-index: 1; opacity: 1; }
-        
-        /* 드래그 중인 클론 아이템 */
         .drag-clone {
             position: fixed;
             pointer-events: none;
@@ -216,8 +232,7 @@
             filter: drop-shadow(0 15px 15px rgba(0,0,0,0.2));
         }
 
-        /* 로딩 인디케이터 */
-        #loading-overlay {
+        #loading-overlay, #reset-modal {
             position: fixed;
             inset: 0;
             background: rgba(0,0,0,0.7);
@@ -231,7 +246,6 @@
         }
         .hidden { display: none !important; }
 
-        /* 미리보기 모드용 스타일 */
         .preview-mode #top-toolbar, 
         .preview-mode #ui-panel {
             transform: translateY(150%);
@@ -242,7 +256,6 @@
             transform: translateY(-150%);
         }
         
-        /* 미리보기 컨트롤 */
         #preview-controls {
             transform: translateY(150%);
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -251,7 +264,6 @@
             transform: translateY(0);
         }
 
-        /* 애니메이션 트랜지션 */
         #top-toolbar, #ui-panel {
             transition: transform 0.3s ease, opacity 0.3s ease;
         }
@@ -259,7 +271,6 @@
 </head>
 <body class="flex flex-col text-slate-800 select-none">
 
-    <!-- 로딩 오버레이 -->
     <div id="loading-overlay" class="hidden">
         <svg class="animate-spin h-10 w-10 text-white mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -268,46 +279,40 @@
         <span>저장 중...</span>
     </div>
 
-    <!-- 전경 (프레임) -->
+    <!-- 초기화 확인 모달 -->
+    <div id="reset-modal" class="hidden">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl text-center max-w-xs mx-4 animation-popup">
+            <p class="text-xl font-bold text-slate-700 mb-6">모든 장식을 지우고<br>처음부터 다시 할까요?</p>
+            <div class="flex gap-3 justify-center">
+                <button onclick="performReset()" class="bg-red-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-red-600 transition text-lg">네</button>
+                <button onclick="closeResetModal()" class="bg-slate-200 text-slate-700 px-6 py-3 rounded-xl font-bold hover:bg-slate-300 transition text-lg">아니요</button>
+            </div>
+        </div>
+    </div>
+
     <div id="foreground-layer"></div>
 
-    <!-- 배경 (Scene) -->
     <div class="scene-bg">
         <div class="moon"></div>
-        <div class="hill-back"></div>
-        <div class="hill"></div>
         <div id="custom-bg-layer" class="hidden"></div>
     </div>
 
-    <!-- 눈 효과 -->
     <div id="snow-container" class="absolute inset-0 pointer-events-none z-10"></div>
 
-    <!-- 파일 입력 -->
-    <input type="file" id="tree-upload" class="hidden-input" accept="image/*">
-    <input type="file" id="bg-upload" class="hidden-input" accept="image/*">
-
-    <!-- 메인 게임 영역 -->
     <main class="relative flex-1 flex flex-col items-center justify-center w-full overflow-hidden z-20" id="capture-area">
         
-        <!-- 상단 툴바 -->
-        <div id="top-toolbar" class="absolute top-4 left-0 w-full px-5 flex justify-between items-start z-50 pointer-events-auto" data-html2canvas-ignore>
-            <h1 class="text-xl text-white drop-shadow-md font-bold" style="font-family: 'Gaegu', cursive;">
-                🎄 나의 트리
-            </h1>
-            <div class="flex gap-2">
-                <button onclick="resetTree()" class="tool-btn bg-white/90" title="초기화">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 12"/><path d="M3 3v9h9"/></svg>
-                </button>
-                <button onclick="togglePreviewMode(true)" class="tool-btn bg-white/90 px-3 font-bold text-sm" title="미리보기">
-                    <span class="mr-1">👁️</span> 미리보기
-                </button>
-            </div>
+        <div id="top-toolbar" class="absolute top-6 left-0 w-full px-5 flex justify-between items-center z-50 pointer-events-auto" data-html2canvas-ignore>
+            <button onclick="openResetModal()" class="tool-btn bg-white/90 font-bold" title="새로고침">
+                <span class="mr-2 text-xl">🔄</span> 새로고침
+            </button>
+            
+            <button onclick="togglePreviewMode(true)" class="tool-btn bg-white/90 font-bold" title="미리보기">
+                <span class="mr-2 text-xl">👁️</span> 미리보기
+            </button>
         </div>
 
-        <!-- 트리 영역 -->
         <div class="tree-container flex items-center justify-center" id="drop-zone">
             
-            <!-- 기본 트리 SVG -->
             <svg id="default-tree-svg" viewBox="0 0 400 550" class="w-full h-full pointer-events-none hidden">
                 <defs>
                     <filter id="displacementFilter">
@@ -329,123 +334,160 @@
                       fill="#86efac" filter="url(#displacementFilter)" />
             </svg>
 
-            <!-- 사용자 커스텀 트리 이미지 (경로 수정: game/ 제거) -->
             <img id="custom-tree-img" src="game/tree.png" class="absolute inset-0 w-full h-full object-contain pointer-events-none" alt="Custom Tree" onerror="this.style.display='none'; document.getElementById('default-tree-svg').classList.remove('hidden');" draggable="false">
             
-            <!-- 장식 레이어 -->
             <div id="ornaments-layer" class="absolute inset-0 w-full h-full z-30"></div>
         </div>
 
-        <div id="toast" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/90 backdrop-blur text-slate-700 font-bold px-8 py-4 rounded-2xl shadow-2xl opacity-0 transition-opacity pointer-events-none z-50 border-2 border-slate-200 text-center">
+        <div id="toast" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/90 backdrop-blur text-slate-700 font-bold px-8 py-4 rounded-2xl shadow-2xl opacity-0 transition-opacity pointer-events-none z-50 border-2 border-slate-200 text-center text-xl">
             완료!
         </div>
 
-        <!-- 미리보기 모드 컨트롤 (하단) -->
         <div id="preview-controls" class="absolute bottom-8 left-0 w-full px-6 flex justify-center gap-4 z-50 pointer-events-auto" data-html2canvas-ignore>
-            <button onclick="togglePreviewMode(false)" class="bg-white/90 backdrop-blur text-slate-700 px-6 py-3 rounded-full font-bold shadow-lg border border-slate-200 hover:bg-slate-50 transition-transform active:scale-95">
+            <button onclick="togglePreviewMode(false)" class="bg-white/90 backdrop-blur text-slate-700 px-8 py-4 rounded-full font-bold shadow-lg border-2 border-slate-200 hover:bg-slate-50 transition-transform active:scale-95 text-xl">
                 ✏️ 편집하기
             </button>
-            <button onclick="saveHighQualityImage()" class="bg-slate-800 text-white px-8 py-3 rounded-full font-bold shadow-lg border border-slate-600 hover:bg-slate-900 transition-transform active:scale-95 flex items-center gap-2">
+            <button onclick="saveHighQualityImage()" class="bg-slate-800 text-white px-10 py-4 rounded-full font-bold shadow-lg border-2 border-slate-600 hover:bg-slate-900 transition-transform active:scale-95 flex items-center gap-2 text-xl">
                 📸 저장하기
             </button>
         </div>
 
     </main>
 
-    <!-- UI 패널 (하단 고정) -->
-    <aside class="z-40 w-full h-[35vh] min-h-[220px] sketch-panel flex flex-col transition-transform duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.2)]" id="ui-panel">
+    <!-- UI 패널 (하단 고정: fixed bottom-0 left-0) -->
+    <aside class="z-40 w-full h-[35vh] min-h-[250px] sketch-panel flex flex-col transition-transform duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] fixed bottom-0 left-0" id="ui-panel">
         
-        <!-- 커스텀 버튼들 -->
-        <div class="px-5 pt-4 pb-2 shrink-0">
-            <div class="flex gap-2 text-xs">
-                <button onclick="document.getElementById('tree-upload').click()" class="flex-1 bg-white hover:bg-slate-50 py-3 rounded-xl text-slate-600 border-2 border-slate-200 transition-colors font-bold shadow-sm">
-                    + 트리 바꾸기
-                </button>
-                <button onclick="document.getElementById('bg-upload').click()" class="flex-1 bg-white hover:bg-slate-50 py-3 rounded-xl text-slate-600 border-2 border-slate-200 transition-colors font-bold shadow-sm">
-                    + 배경 바꾸기
-                </button>
-            </div>
+        <div class="flex-1 overflow-hidden relative flex flex-col bg-slate-50/50 pt-4 rounded-t-3xl">
+            <div id="palette" class="flex-1 p-4 grid grid-cols-4 gap-3 content-start justify-items-center overflow-y-auto"></div>
         </div>
 
-        <!-- 아이템 팔레트 -->
-        <div class="flex-1 overflow-hidden relative flex flex-col bg-slate-50/50 border-t border-slate-200">
-            <div id="palette" class="flex-1 p-4 grid grid-cols-5 gap-3 content-center justify-items-center"></div>
-        </div>
-
-        <!-- 페이지네이션 -->
-        <div class="p-3 border-t border-slate-200 flex justify-between items-center bg-white shrink-0 pb-safe">
+        <div class="p-4 border-t border-slate-200 flex justify-between items-center bg-white shrink-0 pb-safe">
             <button onclick="changePage(-1)" id="btn-prev" class="page-btn">◀</button>
-            <span id="page-indicator" class="font-bold text-slate-500 text-lg font-mono tracking-widest bg-slate-100 px-4 py-1 rounded-lg">1 / 1</span>
+            <span id="page-indicator" class="font-bold text-slate-500 text-2xl font-mono tracking-widest bg-slate-100 px-6 py-2 rounded-xl">1 / 1</span>
             <button onclick="changePage(1)" id="btn-next" class="page-btn">▶</button>
         </div>
     </aside>
 
+    <input type="file" id="tree-upload" class="hidden-input" accept="image/*">
+    <input type="file" id="bg-upload" class="hidden-input" accept="image/*">
+
     <script>
-        // [중요] 우클릭 차단 (PC 및 모바일 롱탭 일부 방어)
         document.addEventListener('contextmenu', function(e) {
             e.preventDefault();
         }, { passive: false });
 
-        // 안전 영역 패딩
         const safeAreaStyle = document.createElement('style');
         safeAreaStyle.innerHTML = `
-            .pb-safe { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+            .pb-safe { padding-bottom: max(20px, env(safe-area-inset-bottom)); }
         `;
         document.head.appendChild(safeAreaStyle);
 
+        // 오너먼트 데이터
         const decorations = [
-            { id: 'star', type: 'topper', html: '<svg viewBox="0 0 24 24"><path fill="#fcd34d" stroke="#fbbf24" stroke-width="1.5" stroke-linejoin="round" d="M12 2l2.5 7h7.5l-6 4.5 2.5 7-6.5-4.5-6.5 4.5 2.5-7-6-4.5h7.5z"/></svg>', size: 70 },
-            { id: 'ball-red', type: 'ornament', html: '<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="9" fill="#f87171" stroke="#ef4444" stroke-width="1.5"/><rect x="10" y="2" width="4" height="4" fill="#b91c1c" rx="1"/><path d="M15 10q2 2 0 4" stroke="white" stroke-width="2" fill="none" opacity="0.5"/></svg>', size: 50 },
-            { id: 'ball-yellow', type: 'ornament', html: '<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="9" fill="#fde047" stroke="#eab308" stroke-width="1.5"/><rect x="10" y="2" width="4" height="4" fill="#854d0e" rx="1"/><path d="M15 10q2 2 0 4" stroke="white" stroke-width="2" fill="none" opacity="0.5"/></svg>', size: 50 },
-            { id: 'ball-teal', type: 'ornament', html: '<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="9" fill="#5eead4" stroke="#14b8a6" stroke-width="1.5"/><rect x="10" y="2" width="4" height="4" fill="#0f766e" rx="1"/><path d="M15 10q2 2 0 4" stroke="white" stroke-width="2" fill="none" opacity="0.5"/></svg>', size: 50 },
-            { id: 'candy', type: 'ornament', html: '<svg viewBox="0 0 24 24"><path d="M7 19v-6a5 5 0 0 1 10 0" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/><path d="M7 19v-6a5 5 0 0 1 10 0" fill="none" stroke="#f43f5e" stroke-width="6" stroke-linecap="round" stroke-dasharray="3 4"/></svg>', size: 55 },
-            { id: 'sock', type: 'ornament', html: '<svg viewBox="0 0 24 24"><path d="M8 2h8v6h-8z" fill="#fca5a5"/><path d="M8 8h8v7a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4v-7z" fill="#ef4444" stroke="#b91c1c" stroke-width="1.5"/><path d="M4 14a2 2 0 0 0 2 2h2" fill="none" stroke="#fff" stroke-width="2"/></svg>', size: 55 },
-            { id: 'gift', type: 'gift', html: '<svg viewBox="0 0 24 24"><rect x="4" y="9" width="16" height="13" rx="2" fill="#86efac" stroke="#22c55e" stroke-width="1.5"/><rect x="10" y="9" width="4" height="13" fill="#ef4444"/><rect x="2" y="6" width="20" height="4" rx="1" fill="#ef4444"/><path d="M12 6L8 2M12 6L16 2" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/></svg>', size: 60 },
-            { id: 'cookie', type: 'ornament', html: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#d4a373" stroke="#9c6644" stroke-width="1.5"/><circle cx="9" cy="10" r="1.5" fill="#5c4033"/><circle cx="15" cy="10" r="1.5" fill="#5c4033"/><circle cx="12" cy="15" r="1.5" fill="#5c4033"/></svg>', size: 50 },
-            { id: 'light', type: 'light', html: '<svg viewBox="0 0 24 24"><path d="M12 2v4" stroke="#64748b" stroke-width="2"/><path d="M12 6c0 0-5 2-5 8s3 8 5 8 5-2 5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8-5-8z" fill="#fdf4ff" stroke="#e879f9" stroke-width="1.5"/><circle cx="12" cy="14" r="3" fill="#fae8ff" opacity="0.6"/></svg>', size: 40 },
-            { id: 'snowball', type: 'ornament', html: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="white" stroke="#bae6fd" stroke-width="1.5"/><path d="M12 4v16M4 12h16" stroke="#bae6fd" stroke-width="1" stroke-linecap="round"/></svg>', size: 45 },
-            // 이미지 경로 수정: game/ 제거 (Canvas 미리보기용)
-            { id: 'pig', type: 'ornament', html: '<img src="game/pig.png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="pig" draggable="false">', size: 60 },
-            // pig1의 크기를 가로 70, 세로 140으로 설정 (1:2 비율 반영하여 큼직하게)
-            { id: 'pig1', type: 'ornament', html: '<img src="game/pig1.png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="pig1" draggable="false">', width: 70, height: 140 },
+            // 별
+            { id: 'star', name: '별', html: '<svg viewBox="0 0 24 24" style="color: #fcd34d;"><path fill="currentColor" stroke="#fbbf24" stroke-width="1.5" stroke-linejoin="round" d="M12 2l2.5 7h7.5l-6 4.5 2.5 7-6.5-4.5-6.5 4.5 2.5-7-6-4.5h7.5z"/></svg>', size: 70 },
+            
+            // LED 전구
+            { id: 'ball-red', name: '빛나는 빨강 볼', type: 'light', html: '<svg viewBox="0 0 24 24" style="color: #f87171;"><circle cx="12" cy="13" r="9" fill="currentColor" stroke="#ef4444" stroke-width="1.5"/><rect x="10" y="2" width="4" height="4" fill="#b91c1c" rx="1"/><path d="M15 10q2 2 0 4" stroke="white" stroke-width="2" fill="none" opacity="0.5"/></svg>', size: 50 },
+            { id: 'ball-yellow', name: '빛나는 노랑 볼', type: 'light', html: '<svg viewBox="0 0 24 24" style="color: #fde047;"><circle cx="12" cy="13" r="9" fill="currentColor" stroke="#eab308" stroke-width="1.5"/><rect x="10" y="2" width="4" height="4" fill="#854d0e" rx="1"/><path d="M15 10q2 2 0 4" stroke="white" stroke-width="2" fill="none" opacity="0.5"/></svg>', size: 50 },
+            { id: 'ball-teal', name: '빛나는 청록 볼', type: 'light', html: '<svg viewBox="0 0 24 24" style="color: #5eead4;"><circle cx="12" cy="13" r="9" fill="currentColor" stroke="#14b8a6" stroke-width="1.5"/><rect x="10" y="2" width="4" height="4" fill="#0f766e" rx="1"/><path d="M15 10q2 2 0 4" stroke="white" stroke-width="2" fill="none" opacity="0.5"/></svg>', size: 50 },
+            { id: 'ball-blue', name: '빛나는 파랑 볼', type: 'light', html: '<svg viewBox="0 0 24 24" style="color: #3b82f6;"><circle cx="12" cy="13" r="9" fill="currentColor" stroke="#1d4ed8" stroke-width="1.5"/><rect x="10" y="2" width="4" height="4" fill="#1e3a8a" rx="1"/><path d="M15 10q2 2 0 4" stroke="white" stroke-width="2" fill="none" opacity="0.5"/></svg>', size: 50 },
+            { id: 'ball-green', name: '빛나는 초록 볼', type: 'light', html: '<svg viewBox="0 0 24 24" style="color: #22c55e;"><circle cx="12" cy="13" r="9" fill="currentColor" stroke="#15803d" stroke-width="1.5"/><rect x="10" y="2" width="4" height="4" fill="#14532d" rx="1"/><path d="M15 10q2 2 0 4" stroke="white" stroke-width="2" fill="none" opacity="0.5"/></svg>', size: 50 },
+            { id: 'ball-purple', name: '빛나는 보라 볼', type: 'light', html: '<svg viewBox="0 0 24 24" style="color: #a855f7;"><circle cx="12" cy="13" r="9" fill="currentColor" stroke="#7e22ce" stroke-width="1.5"/><rect x="10" y="2" width="4" height="4" fill="#581c87" rx="1"/><path d="M15 10q2 2 0 4" stroke="white" stroke-width="2" fill="none" opacity="0.5"/></svg>', size: 50 },
+            { id: 'ball-pink', name: '빛나는 핑크 볼', type: 'light', html: '<svg viewBox="0 0 24 24" style="color: #ec4899;"><circle cx="12" cy="13" r="9" fill="currentColor" stroke="#be185d" stroke-width="1.5"/><rect x="10" y="2" width="4" height="4" fill="#831843" rx="1"/><path d="M15 10q2 2 0 4" stroke="white" stroke-width="2" fill="none" opacity="0.5"/></svg>', size: 50 },
+
+            { id: 'candy', name: '지팡이', html: '<svg viewBox="0 0 24 24"><path d="M7 19v-6a5 5 0 0 1 10 0" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/><path d="M7 19v-6a5 5 0 0 1 10 0" fill="none" stroke="#f43f5e" stroke-width="6" stroke-linecap="round" stroke-dasharray="3 4"/></svg>', size: 55 },
+            { id: 'gift', name: '선물 상자', html: '<svg viewBox="0 0 24 24"><rect x="4" y="9" width="16" height="13" rx="2" fill="#86efac" stroke="#22c55e" stroke-width="1.5"/><rect x="10" y="9" width="4" height="13" fill="#ef4444"/><rect x="2" y="6" width="20" height="4" rx="1" fill="#ef4444"/><path d="M12 6L8 2M12 6L16 2" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/></svg>', size: 60 },
+            { id: 'gingerbread', name: '진저브레드맨', html: '<svg viewBox="0 0 24 24"><path d="M12 2c-1.7 0-3 1.3-3 3c0 .6.2 1.2.5 1.7L6 9c-.6.2-1 .8-1 1.5v1c0 .8.7 1.5 1.5 1.5h.5l1 4l-1 2c-.3.6 0 1.4.6 1.8l.9.4c.6.3 1.4 0 1.8-.6l1.7-3.4h2l1.7 3.4c.3.6 1.1.9 1.8.6l.9-.4c.6-.3.9-1.1.6-1.8l-1-2l1-4h.5c.8 0 1.5-.7 1.5-1.5v-1c0-.7-.4-1.3-1-1.5l-3.5-2.3c.3-.5.5-1.1.5-1.7c0-1.7-1.3-3-3-3z" fill="#cd853f" stroke="#8b4513" stroke-width="1"/><circle cx="11" cy="4" r="0.8" fill="white"/><circle cx="13" cy="4" r="0.8" fill="white"/><circle cx="12" cy="9" r="0.8" fill="#ef4444"/><circle cx="12" cy="12" r="0.8" fill="#ef4444"/><path d="M11 6q1 1 2 0" stroke="white" stroke-width="0.8" fill="none"/></svg>', size: 60 },
+            { id: 'ribbon', name: '리본', html: '<svg viewBox="0 0 50 50"><path d="M25 25 C 15 15 5 15 5 25 C 5 35 15 35 25 25 Z" fill="#ef4444" stroke="#991b1b" stroke-width="1.5"/><path d="M25 25 C 35 15 45 15 45 25 C 45 35 35 35 25 25 Z" fill="#ef4444" stroke="#991b1b" stroke-width="1.5"/><path d="M25 25 L 18 45 L 25 40 L 32 45 L 25 25" fill="#ef4444" stroke="#991b1b" stroke-width="1.5"/><circle cx="25" cy="25" r="4" fill="#b91c1c"/></svg>', size: 60 },
+
+            // 추가된 이미지 오너먼트 28종
+            { id: 'orn1', name: '굿즈 - 달고나', html: '<img src="game/orn (1).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="굿즈 - 달고나" draggable="false">', size: 60 },
+            { id: 'orn2', name: '치지직', html: '<img src="game/orn (2).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="치지직" draggable="false">', size: 60 },
+            { id: 'orn3', name: '치즈', html: '<img src="game/orn (3).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="치즈" draggable="false">', size: 60 },
+            { id: 'orn4', name: '통나무 파워', html: '<img src="game/orn (4).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="통나무 파워" draggable="false">', size: 60 },
+            { id: 'orn5', name: '실크송', html: '<img src="game/orn (5).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="실크송" draggable="false">', size: 60 },
+            { id: 'orn6', name: '겟 투 워크', html: '<img src="game/orn (6).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="겟 투 워크" draggable="false">', size: 60 },
+            { id: 'orn7', name: '활협전', html: '<img src="game/orn (7).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="활협전" draggable="false">', size: 60 },
+            { id: 'orn8', name: '베이비 스텝', html: '<img src="game/orn (8).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="베이비 스텝" draggable="false">', size: 60 },
+            { id: 'orn9', name: '13월의 그리운 복수 - 액자', html: '<img src="game/orn (9).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="13월의 그리운 복수 - 액자" draggable="false">', size: 60 },
+            { id: 'orn10', name: '그림자복도2 - 곡옥', html: '<img src="game/orn (10).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="그림자복도2 - 곡옥" draggable="false">', size: 60 },
+            { id: 'orn11', name: '파피 플레이타임 챕터4', html: '<img src="game/orn (11).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="파피 플레이타임 챕터4" draggable="false">', size: 60 },
+            { id: 'orn12', name: '아만다3', html: '<img src="game/orn (12).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="아만다3" draggable="false">', size: 60 },
+            { id: 'orn13', name: '라타탄', html: '<img src="game/orn (13).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="라타탄" draggable="false">', size: 60 },
+            { id: 'orn14', name: '비츠 앤 밥스', html: '<img src="game/orn (14).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="비츠 앤 밥스" draggable="false">', size: 60 },
+            { id: 'orn15', name: '언몬드 - 비밀번호', html: '<img src="game/orn (15).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="언몬드 - 비밀번호" draggable="false">', size: 60 },
+            { id: 'orn16', name: '사과게임', html: '<img src="game/orn (16).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="사과게임" draggable="false">', size: 60 },
+            { id: 'orn17', name: '마이 리틀 퍼피', html: '<img src="game/orn (17).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="마이 리틀 퍼피" draggable="false">', size: 60 },
+            { id: 'orn18', name: '산타', html: '<img src="game/orn (18).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="산타" draggable="false">', size: 60 },
+            { id: 'orn19', name: '딸기', html: '<img src="game/orn (19).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="딸기" draggable="false">', size: 60 },
+            { id: 'orn20', name: '제육복', html: '<img src="game/orn (20).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="제육복" draggable="false">', size: 60 },
+            { id: 'orn21', name: '풍뎅이', html: '<img src="game/orn (21).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="풍뎅이" draggable="false">', size: 60 },
+            { id: 'orn22', name: '물개', html: '<img src="game/orn (22).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="물개" draggable="false">', size: 60 },
+            { id: 'orn23', name: '잠크리트', html: '<img src="game/orn (23).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="잠크리트" draggable="false">', size: 60 },
+            { id: 'orn24', name: '트리', html: '<img src="game/orn (24).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="트리" draggable="false">', size: 60 },
+            { id: 'orn25', name: '루돌프', html: '<img src="game/orn (25).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="루돌프" draggable="false">', size: 60 },
+            { id: 'orn26', name: '선물 풍뎅이', html: '<img src="game/orn (26).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="선물 풍뎅이" draggable="false">', size: 60 },
+            { id: 'orn27', name: '눈사람', html: '<img src="game/orn (27).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="눈사람" draggable="false">', size: 60 },
+            { id: 'orn28', name: '양말', html: '<img src="game/orn (28).png" class="w-full h-full object-contain pointer-events-none drop-shadow-sm" alt="양말" draggable="false">', size: 60 },
         ];
         
-        // 아이템 복제 (모바일 레이아웃 채우기용)
-        const extras = decorations.map((d, i) => ({...d, id: d.id + '_copy' + i})).slice(0, 20);
-        decorations.push(...extras);
-
         const paletteEl = document.getElementById('palette');
         const ornamentLayer = document.getElementById('ornaments-layer');
         const dropZone = document.getElementById('drop-zone');
         
         let currentPage = 1;
-        const itemsPerPage = 10; 
+        const itemsPerPage = 8; 
         
         let draggedItem = null;
         let activeClone = null;
+        let selectedItem = null;
 
-        document.getElementById('tree-upload').addEventListener('change', function(e) { handleImageUpload(e.target.files[0], 'tree'); });
-        document.getElementById('bg-upload').addEventListener('change', function(e) { handleImageUpload(e.target.files[0], 'bg'); });
+        document.addEventListener('keydown', function(e) {
+            if (selectedItem && (e.key === 'Delete' || e.key === 'Backspace')) {
+                const rect = selectedItem.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                createPoofEffect(centerX, centerY);
+                selectedItem.remove();
+                selectedItem = null; 
+            }
+        });
 
-        function handleImageUpload(file, type) {
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                if (type === 'tree') {
-                    const img = document.getElementById('custom-tree-img');
-                    const svg = document.getElementById('default-tree-svg');
-                    img.src = e.target.result;
-                    img.classList.remove('hidden');
-                    svg.classList.add('hidden');
-                    showToast('트리가 변경되었습니다!');
-                } else if (type === 'bg') {
-                    const bgLayer = document.getElementById('custom-bg-layer');
-                    bgLayer.style.backgroundImage = `url(${e.target.result})`;
-                    bgLayer.classList.remove('hidden');
-                    showToast('배경이 변경되었습니다!');
-                }
-            };
-            reader.readAsDataURL(file);
+        document.getElementById('capture-area').addEventListener('click', function(e) {
+            if (e.target.id === 'capture-area' || e.target.classList.contains('tree-container')) {
+                deselectAll();
+            }
+        });
+
+        function openResetModal() {
+            document.getElementById('reset-modal').classList.remove('hidden');
+        }
+
+        function closeResetModal() {
+            document.getElementById('reset-modal').classList.add('hidden');
+        }
+
+        function performReset() {
+            ornamentLayer.innerHTML = '';
+            
+            const treeImg = document.getElementById('custom-tree-img');
+            const defaultSvg = document.getElementById('default-tree-svg');
+            
+            treeImg.src = 'game/tree.png';
+            treeImg.classList.remove('hidden');
+            if(defaultSvg) defaultSvg.classList.add('hidden');
+
+            const bgLayer = document.getElementById('custom-bg-layer');
+            if(bgLayer) {
+                bgLayer.style.backgroundImage = '';
+                bgLayer.classList.add('hidden');
+            }
+
+            deselectAll();
+            closeResetModal();
+            showToast('깨끗하게 지워졌어요!');
         }
 
         function showToast(msg) {
@@ -457,6 +499,8 @@
 
         function togglePreviewMode(showPreview) {
             const body = document.body;
+            if (showPreview) deselectAll();
+            
             if (showPreview) {
                 body.classList.add('preview-mode');
             } else {
@@ -465,41 +509,35 @@
         }
 
         async function saveHighQualityImage() {
+            deselectAll();
             const loading = document.getElementById('loading-overlay');
             loading.classList.remove('hidden');
             
-            // 3. 눈송이 위치 고정 로직 (캡처 전 Freeze)
             const snowflakes = document.querySelectorAll('.snowflake');
             const frozenStates = [];
             
             snowflakes.forEach(flake => {
-                // 현재 계산된 스타일(위치) 가져오기
                 const computed = window.getComputedStyle(flake);
                 const transform = computed.transform;
-                const top = computed.top;
                 
-                // 현재 상태 저장
                 frozenStates.push({
                     element: flake,
                     animation: flake.style.animation,
                     transform: flake.style.transform
                 });
 
-                // 애니메이션 멈추고 현재 위치로 고정
                 flake.style.animation = 'none';
                 flake.style.transform = transform; 
             });
 
-            // 캡처 전 아주 잠깐 대기 (UI 트랜지션 완료 보장)
             await new Promise(resolve => setTimeout(resolve, 350));
 
             try {
-                // 미리보기 모드가 아니었다면 잠시 UI 숨김 처리 후 캡처
                 const body = document.body;
                 const wasInPreview = body.classList.contains('preview-mode');
                 if (!wasInPreview) body.classList.add('preview-mode');
 
-                await new Promise(resolve => setTimeout(resolve, 100)); // DOM 업데이트 대기
+                await new Promise(resolve => setTimeout(resolve, 100));
 
                 const captureElement = document.body; 
 
@@ -508,11 +546,11 @@
                     backgroundColor: null,
                     useCORS: true,
                     ignoreElements: (element) => {
-                        // 저장 시 툴바, UI패널, 컨트롤 버튼 등 제외
                         if (element.id === 'ui-panel') return true;
                         if (element.id === 'top-toolbar') return true;
                         if (element.id === 'preview-controls') return true;
                         if (element.id === 'loading-overlay') return true;
+                        if (element.id === 'reset-modal') return true;
                         if (element.hasAttribute('data-html2canvas-ignore')) return true;
                         return false;
                     }
@@ -525,14 +563,12 @@
                 
                 showToast('저장 완료!');
                 
-                // 원래 상태 복구
                 if (!wasInPreview) body.classList.remove('preview-mode');
 
             } catch (err) {
                 console.error(err);
                 showToast('저장 실패 ㅠㅠ');
             } finally {
-                // 눈송이 애니메이션 복구
                 frozenStates.forEach(state => {
                     state.element.style.animation = state.animation;
                     state.element.style.transform = state.transform;
@@ -558,10 +594,11 @@
 
             currentItems.forEach(item => {
                 const div = document.createElement('div');
-                div.className = 'shelf-slot relative w-14 h-14 md:w-16 md:h-16 flex items-center justify-center cursor-grab active:cursor-grabbing touch-none';
-                div.innerHTML = item.html;
-                const svg = div.querySelector('svg');
-                if (svg) { svg.style.width = '75%'; svg.style.height = '75%'; }
+                div.className = 'shelf-slot cursor-pointer';
+                div.innerHTML = `
+                    ${item.html}
+                    <div class="item-name">${item.name}</div>
+                `;
                 
                 div.addEventListener('touchstart', (e) => startDrag(e, item), {passive: false});
                 div.addEventListener('mousedown', (e) => startDrag(e, item));
@@ -576,6 +613,8 @@
 
         function startDrag(e, itemData) {
             e.preventDefault();
+            deselectAll();
+
             let clientX, clientY;
             if(e.touches) {
                 clientX = e.touches[0].clientX;
@@ -591,7 +630,6 @@
             activeClone.className = 'drag-clone';
             activeClone.innerHTML = itemData.html;
             
-            // 너비와 높이를 개별적으로 설정 (없으면 size 사용)
             const w = itemData.width || itemData.size;
             const h = itemData.height || itemData.size;
             
@@ -638,14 +676,8 @@
             if (!draggedItem || !activeClone) return;
 
             const dropRect = dropZone.getBoundingClientRect();
-            if (
-                clientX >= dropRect.left && 
-                clientX <= dropRect.right && 
-                clientY >= dropRect.top && 
-                clientY <= dropRect.bottom
-            ) {
-                placeItem(clientX, clientY);
-            }
+            
+            placeItem(clientX, clientY);
 
             activeClone.remove();
             activeClone = null;
@@ -663,9 +695,14 @@
 
             const el = document.createElement('div');
             el.className = 'placed-item';
-            el.innerHTML = draggedItem.html;
             
-            // 배치할 때도 너비/높이 개별 적용
+            // LED 전구 및 별 반짝임 효과 적용
+            if (draggedItem.type === 'light' || draggedItem.id === 'star') {
+                el.classList.add('led-anim');
+            }
+
+            el.innerHTML = draggedItem.html + '<div class="resizer"></div>';
+            
             const w = draggedItem.width || draggedItem.size;
             const h = draggedItem.height || draggedItem.size;
             
@@ -674,12 +711,86 @@
             el.style.left = `${relativeX - (w / 2)}px`;
             el.style.top = `${relativeY - (h / 2)}px`;
             
-            const rotation = Math.random() * 20 - 10;
-            el.style.transform = `rotate(${rotation}deg)`;
+            el.style.transform = 'none';
 
             makeDraggable(el);
+            initResizer(el);
+
             ornamentLayer.appendChild(el);
+            
+            selectItem(el);
+            
             createPoofEffect(clientX, clientY);
+        }
+
+        function selectItem(el) {
+            deselectAll();
+            el.classList.add('selected');
+            selectedItem = el;
+        }
+
+        function deselectAll() {
+            const selected = document.querySelectorAll('.placed-item.selected');
+            selected.forEach(el => el.classList.remove('selected'));
+            selectedItem = null;
+        }
+
+        function initResizer(el) {
+            const resizer = el.querySelector('.resizer');
+            
+            const startResize = function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                
+                let startX, startY, startWidth, startHeight;
+                
+                if (e.touches) {
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                } else {
+                    startX = e.clientX;
+                    startY = e.clientY;
+                }
+                
+                startWidth = parseFloat(getComputedStyle(el).width);
+                startHeight = parseFloat(getComputedStyle(el).height);
+                
+                const aspectRatio = startWidth / startHeight;
+
+                const doResize = function(e) {
+                    let clientX, clientY;
+                    if (e.touches) {
+                        clientX = e.touches[0].clientX;
+                        clientY = e.touches[0].clientY;
+                    } else {
+                        clientX = e.clientX;
+                        clientY = e.clientY;
+                    }
+                    
+                    const widthChange = clientX - startX;
+                    let newWidth = startWidth + widthChange;
+                    
+                    if (newWidth < 20) newWidth = 20;
+                    
+                    el.style.width = `${newWidth}px`;
+                    el.style.height = `${newWidth / aspectRatio}px`;
+                };
+
+                const stopResize = function() {
+                    document.removeEventListener('touchmove', doResize);
+                    document.removeEventListener('touchend', stopResize);
+                    document.removeEventListener('mousemove', doResize);
+                    document.removeEventListener('mouseup', stopResize);
+                };
+
+                document.addEventListener('touchmove', doResize, {passive: false});
+                document.addEventListener('touchend', stopResize);
+                document.addEventListener('mousemove', doResize);
+                document.addEventListener('mouseup', stopResize);
+            };
+
+            resizer.addEventListener('mousedown', startResize);
+            resizer.addEventListener('touchstart', startResize, {passive: false});
         }
 
         function makeDraggable(el) {
@@ -687,11 +798,16 @@
             let startX, startY;
             let initialLeft, initialTop;
             let hasMoved = false;
-            let lastClickTime = 0; // 더블클릭 감지용
+            let lastClickTime = 0; 
 
             const startHandler = function(e) {
+                if (e.target.classList.contains('resizer')) return;
+
                 e.stopPropagation();
                 e.preventDefault();
+                
+                selectItem(el);
+
                 isDragging = true;
                 hasMoved = false;
 
@@ -749,29 +865,27 @@
                 const rect = dropZone.getBoundingClientRect();
                 const elRect = el.getBoundingClientRect();
                 
-                // 화면 밖으로 드래그하면 삭제
                 if (
-                    elRect.right < rect.left || 
-                    elRect.left > rect.right || 
-                    elRect.bottom < rect.top || 
-                    elRect.top > rect.bottom
+                    elRect.right < 0 || 
+                    elRect.left > window.innerWidth || 
+                    elRect.bottom < 0 || 
+                    elRect.top > window.innerHeight
                 ) {
                     createPoofEffect(elRect.left + elRect.width/2, elRect.top + elRect.height/2);
                     el.remove();
                     return;
                 }
 
-                // 더블 클릭(탭) 감지 로직
                 if (!hasMoved) {
                     const currentTime = new Date().getTime();
                     const timeDiff = currentTime - lastClickTime;
                     
                     if (timeDiff < 300 && timeDiff > 0) {
-                        // 더블 탭 성공 -> 삭제
                         const center = { x: elRect.left + elRect.width/2, y: elRect.top + elRect.height/2 };
                         createPoofEffect(center.x, center.y);
                         el.remove();
                         lastClickTime = 0;
+                        selectedItem = null;
                     } else {
                         lastClickTime = currentTime;
                     }
@@ -800,12 +914,6 @@
             `;
             document.body.appendChild(poof);
             setTimeout(() => poof.remove(), 400);
-        }
-
-        function resetTree() {
-            if(confirm('트리를 초기화할까요?')) {
-                ornamentLayer.innerHTML = '';
-            }
         }
 
         function createSnow() {
